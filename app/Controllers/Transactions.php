@@ -106,7 +106,7 @@ class Transactions extends BaseController
             'title' => $this->title,
             'link' => $this->link,
             'customers' => $this->customerModel->where('is_active', 1)->findAll(),
-            'products' => $this->productModel->where('is_active', 1)->findAll(),
+            'products' => $this->getProductsWithEffectiveStock(),
             'paymentMethods' => $this->paymentMethodModel->findAll(),
         ];
 
@@ -166,13 +166,20 @@ class Transactions extends BaseController
             $prices = $this->request->getVar('price'); // Optional if taking from input, else we query product
 
             // Validate Stock first
+            $productsWithStock = $this->getProductsWithEffectiveStock();
+            $stockMap = [];
+            foreach ($productsWithStock as $p) {
+                $stockMap[$p->id] = $p->qty;
+            }
+
             for ($i = 0; $i < count($products); $i++) {
                 $productId = $products[$i];
                 $qty = $qtys[$i];
                 $product = $this->productModel->find($productId);
-                if ($product && $qty > $product->qty) {
+                $available = $stockMap[$productId] ?? 0;
+                if ($product && $qty > $available) {
                     $this->db->transRollback();
-                    return redirect()->back()->with('error', "Ordered quantity for {$product->name} exceeds available stock ({$product->qty}).")->withInput();
+                    return redirect()->back()->with('error', "Ordered quantity for {$product->name} exceeds available hold stock ({$available}).")->withInput();
                 }
             }
 
@@ -220,7 +227,7 @@ class Transactions extends BaseController
                     $amt = floatval($paymentAmounts[$i]);
                     if ($amt > 0) {
                         $paidAmount += $amt;
-                        
+
                         // Handle Optional Payment Proof Upload
                         $proofName = null;
                         if (isset($paymentProofFiles['payment_proof'][$i]) && $paymentProofFiles['payment_proof'][$i]->isValid() && !$paymentProofFiles['payment_proof'][$i]->hasMoved()) {
@@ -275,6 +282,16 @@ class Transactions extends BaseController
 
             if (!empty($detailsData)) {
                 $this->detailModel->insertBatch($detailsData);
+
+                // Permanent Stock Deduction if status is delivered
+                if (($this->request->getVar('status') ?? 'pending') === 'delivered') {
+                    foreach ($detailsData as $nd) {
+                        $p = $this->productModel->find($nd['product_id']);
+                        if ($p) {
+                            $this->productModel->update($p->id, ['qty' => $p->qty - $nd['qty']]);
+                        }
+                    }
+                }
             }
 
             foreach ($paymentsData as &$pd) {
@@ -320,7 +337,7 @@ class Transactions extends BaseController
             'transaction' => $transaction,
             'details' => $details,
             'customers' => $this->customerModel->where('is_active', 1)->findAll(),
-            'products' => $this->productModel->where('is_active', 1)->findAll(),
+            'products' => $this->getProductsWithEffectiveStock($id),
             'paymentMethods' => $this->paymentMethodModel->findAll(),
             'payments' => $this->paymentModel->where('transaction_id', $id)->findAll(),
             'refunds' => $this->paymentRefundModel->where('transaction_id', $id)->findAll(),
@@ -391,9 +408,10 @@ class Transactions extends BaseController
 
             // Find old details to offset the stock check
             $oldDetails = $this->detailModel->where('transaction_id', $id)->findAll();
-            $oldQtys = [];
-            foreach ($oldDetails as $od) {
-                $oldQtys[$od->product_id] = $od->qty;
+            $productsWithStock = $this->getProductsWithEffectiveStock($id);
+            $stockMap = [];
+            foreach ($productsWithStock as $p) {
+                $stockMap[$p->id] = $p->qty;
             }
 
             if ($products) {
@@ -402,14 +420,11 @@ class Transactions extends BaseController
                     $qty = $qtys[$i];
 
                     $product = $this->productModel->find($productId);
-                    if ($product) {
-                        $previouslyOrdered = isset($oldQtys[$productId]) ? $oldQtys[$productId] : 0;
-                        $availableStock = $product->qty + $previouslyOrdered;
+                    $availableStock = $stockMap[$productId] ?? 0;
 
-                        if ($qty > $availableStock) {
-                            $this->db->transRollback();
-                            return redirect()->back()->with('error', "Ordered quantity for {$product->name} exceeds available stock ({$availableStock}).")->withInput();
-                        }
+                    if ($product && $qty > $availableStock) {
+                        $this->db->transRollback();
+                        return redirect()->back()->with('error', "Ordered quantity for {$product->name} exceeds available stock ({$availableStock}).")->withInput();
                     }
                 }
             }
@@ -453,7 +468,7 @@ class Transactions extends BaseController
             $paymentReferences = $this->request->getVar('payment_reference') ?? [];
             $paymentNotes = $this->request->getVar('payment_note') ?? [];
             $paymentProofFiles = $this->request->getFiles();
-            
+
             // Need existing payments to retain old proofs if not overwritten
             $existingPayments = $this->paymentModel->where('transaction_id', $id)->findAll();
 
@@ -465,7 +480,7 @@ class Transactions extends BaseController
                     $amt = floatval($paymentAmounts[$i]);
                     if ($amt > 0) {
                         $paidAmount += $amt;
-                        
+
                         // Handle Optional Payment Proof Upload or Retain Old
                         $proofName = null;
                         if (isset($existingPayments[$i]) && !empty($existingPayments[$i]->payment_proof)) {
@@ -546,10 +561,32 @@ class Transactions extends BaseController
 
             $this->model->update($id, $transactionData);
 
+            $newStatus = $this->request->getVar('status') ?? $transaction->status;
+            $oldStatus = $transaction->status;
+
+            if ($oldStatus === 'delivered') {
+                foreach ($oldDetails as $od) {
+                    $p = $this->productModel->find($od->product_id);
+                    if ($p) {
+                        $this->productModel->update($p->id, ['qty' => $p->qty + $od->qty]);
+                    }
+                }
+            }
+
             // Delete old details and insert new ones
             $this->detailModel->where('transaction_id', $id)->delete();
+
             if (!empty($detailsData)) {
                 $this->detailModel->insertBatch($detailsData);
+
+                if ($newStatus === 'delivered') {
+                    foreach ($detailsData as $nd) {
+                        $p = $this->productModel->find($nd['product_id']);
+                        if ($p) {
+                            $this->productModel->update($p->id, ['qty' => $p->qty - $nd['qty']]);
+                        }
+                    }
+                }
             }
 
             // Delete old payments and insert new ones
@@ -595,6 +632,16 @@ class Transactions extends BaseController
         $this->db->transBegin();
 
         try {
+            if ($transaction->status === 'delivered') {
+                $oldDetails = $this->detailModel->where('transaction_id', $id)->findAll();
+                foreach ($oldDetails as $od) {
+                    $p = $this->productModel->find($od->product_id);
+                    if ($p) {
+                        $this->productModel->update($p->id, ['qty' => $p->qty + $od->qty]);
+                    }
+                }
+            }
+
             // Because useSoftDeletes might be true, we also delete details.
             $this->detailModel->where('transaction_id', $id)->delete();
             $this->model->delete($id);
@@ -611,5 +658,48 @@ class Transactions extends BaseController
             $this->db->transRollback();
             return redirect()->back()->with('error', $th->getMessage())->withInput();
         }
+    }
+
+    protected function getProductsWithEffectiveStock($excludeTransactionId = null)
+    {
+        $products = $this->productModel->findAll();
+        $db = \Config\Database::connect();
+        $builder = $db->table('transaction_details td');
+        $builder->select('td.product_id, SUM(td.qty) as hold_qty');
+        $builder->join('transactions t', 't.id = td.transaction_id');
+        $builder->whereNotIn('t.status', ['delivered', 'cancelled']);
+
+        if ($excludeTransactionId) {
+            $builder->where('t.id !=', $excludeTransactionId);
+        }
+
+        $builder->where('t.deleted_at IS NULL');
+        $builder->groupBy('td.product_id');
+        $holds = $builder->get()->getResult();
+
+        $holdMap = [];
+        foreach ($holds as $h) {
+            $holdMap[$h->product_id] = $h->hold_qty;
+        }
+
+        $restockMap = [];
+        if ($excludeTransactionId) {
+            $trans = $this->model->find($excludeTransactionId);
+            if ($trans && $trans->status === 'delivered') {
+                $oldDetails = $this->detailModel->where('transaction_id', $excludeTransactionId)->findAll();
+                foreach ($oldDetails as $od) {
+                    if (!isset($restockMap[$od->product_id])) $restockMap[$od->product_id] = 0;
+                    $restockMap[$od->product_id] += $od->qty;
+                }
+            }
+        }
+
+        foreach ($products as $p) {
+            $hold = isset($holdMap[$p->id]) ? $holdMap[$p->id] : 0;
+            $restock = isset($restockMap[$p->id]) ? $restockMap[$p->id] : 0;
+            $p->qty = max(0, ($p->qty + $restock) - $hold);
+        }
+
+        return $products;
     }
 }

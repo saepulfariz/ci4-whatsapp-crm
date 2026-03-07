@@ -53,7 +53,11 @@ class Products extends BaseController
         $data = [
             'title' => $this->title,
             'link' => $this->link,
-            'products' => $this->model->select('products.*, categories.name as category_name')->join('categories', 'categories.id = products.category_id')->orderBy('products.id', 'desc')->findAll()
+            'products' => $this->model->select('products.*, categories.name as category_name')
+                ->select('(SELECT SUM(td.qty) FROM transaction_details td JOIN transactions t ON t.id = td.transaction_id WHERE td.product_id = products.id AND t.status NOT IN ("delivered", "cancelled") AND t.deleted_at IS NULL) as hold_qty')
+                ->join('categories', 'categories.id = products.category_id')
+                ->orderBy('products.id', 'desc')
+                ->findAll()
         ];
 
         return view($this->view . '/index', $data);

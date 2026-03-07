@@ -150,7 +150,7 @@
                                                             // Calculate effectively available stock, considering the stock already reserved in this detail line
                                                             $effectiveStock = $product->qty;
                                                             if ($detail->product_id == $product->id) {
-                                                                $effectiveStock += $detail->qty;
+                                                                $effectiveStock -= $detail->qty;
                                                             }
                                                             ?>
                                                             <option value="<?= $product->id; ?>" data-price="<?= $product->price; ?>" data-stock="<?= $effectiveStock; ?>" <?= $detail->product_id == $product->id ? 'selected' : ''; ?>>
