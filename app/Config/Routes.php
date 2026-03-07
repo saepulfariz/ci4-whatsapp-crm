@@ -43,4 +43,7 @@ $routes->resource('customers', ['controller' => '\App\Controllers\Customers', 'f
 
 $routes->resource('transactions', ['controller' => '\App\Controllers\Transactions', 'filter' => 'session']);
 
+$routes->resource('broadcasts', ['controller' => '\App\Controllers\Broadcasts', 'filter' => 'session']);
+$routes->resource('broadcast-variables', ['controller' => '\App\Controllers\BroadcastVariables', 'filter' => 'session']);
+
 service('auth')->routes($routes);

@@ -18,5 +18,7 @@ class All extends Seeder
         $this->call('SeedTransactions');
 
         $this->call('SeedPaymentMethods');
+
+        $this->call('SeedBroadcasts');
     }
 }
