@@ -18,6 +18,14 @@ return [
     'grand_total' => 'Total Jumlah',
     'order_items' => 'Item Order',
 
+    'payments' => 'Pembayaran',
+    'method' => 'Metode',
+    'amount' => 'Jumlah',
+    'proof' => 'Bukti',
+    'reference' => 'Referensi',
+    'refunds' => 'Pengembalian',
+    'reason' => 'Alasan',
+
     'customer_info' => 'Informasi Pelanggan & Order',
     'order_summary' => 'Ringkasan Order',
 

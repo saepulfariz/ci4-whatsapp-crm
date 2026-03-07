@@ -122,12 +122,79 @@
                             </tfoot>
                         </table>
                     </div>
-                    <div class="card-footer">
-                        <a href="<?= base_url($link); ?>" class="btn btn-secondary"><?= temp_lang('app.back'); ?></a>
+                </div>
+                <?php if (!empty($payments)): ?>
+                    <div class="card-header bg-info">
+                        <h3 class="card-title text-light"><?= temp_lang('transactions.payments'); ?></h3>
                     </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th><?= temp_lang('transactions.method'); ?></th>
+                                    <th><?= temp_lang('transactions.amount'); ?></th>
+                                    <th><?= temp_lang('app.date'); ?></th>
+                                    <th><?= temp_lang('transactions.proof'); ?></th>
+                                    <th><?= temp_lang('transactions.reference'); ?></th>
+                                    <th><?= temp_lang('transactions.note'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($payments as $payment): ?>
+                                    <tr>
+                                        <td><?= esc($payment->method_name); ?></td>
+                                        <td><?= number_format(esc($payment->amount), 2); ?></td>
+                                        <td><?= date('d M Y H:i', strtotime(esc($payment->paid_at))); ?></td>
+                                        <td>
+                                            <?php if ($payment->payment_proof): ?>
+                                                <a href="<?= asset_url('uploads/payments/' . $payment->payment_proof); ?>" target="_blank" class="btn btn-sm btn-info"><i class="fas fa-paperclip"></i> View</a>
+                                            <?php else: ?>
+                                                -
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?= esc($payment->payment_reference); ?></td>
+                                        <td><?= esc($payment->note); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!empty($refunds)): ?>
+                    <div class="card-header bg-warning">
+                        <h3 class="card-title text-dark"><?= temp_lang('transactions.refunds'); ?></h3>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th><?= temp_lang('transactions.method'); ?></th>
+                                    <th><?= temp_lang('transactions.amount'); ?></th>
+                                    <th><?= temp_lang('transactions.reason'); ?></th>
+                                    <th><?= temp_lang('transactions.reference'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($refunds as $refund): ?>
+                                    <tr>
+                                        <td><?= esc($refund->method_name); ?></td>
+                                        <td><?= number_format(esc($refund->amount), 2); ?></td>
+                                        <td><?= esc($refund->reason); ?></td>
+                                        <td><?= esc($refund->refund_reference); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+
+                <div class="card-footer">
+                    <a href="<?= base_url($link); ?>" class="btn btn-secondary"><?= temp_lang('app.back'); ?></a>
                 </div>
             </div>
         </div>
+    </div>
 
     </div>
 </section>

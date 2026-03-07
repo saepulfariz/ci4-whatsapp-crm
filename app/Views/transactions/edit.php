@@ -31,7 +31,7 @@
                 <div class="col-12 col-xl-4">
                     <div class="card">
                         <div class="card-header bg-primary">
-                            <h3 class="card-title">Order Details</h3>
+                            <h3 class="card-title"><?= temp_lang('transactions.order_details'); ?></h3>
                         </div>
                         <div class="card-body">
 
@@ -187,10 +187,97 @@
                                     </tr>
                                     <tr>
                                         <th colspan="3" class="text-right"><?= temp_lang('transactions.paid_amount'); ?></th>
-                                        <th><input type="number" step="0.01" class="form-control" id="paid_amount" name="paid_amount" value="<?= old('paid_amount', $transaction->paid_amount); ?>"></th>
+                                        <th><input type="number" step="0.01" class="form-control" id="paid_amount" name="paid_amount" readonly value="<?= esc($transaction->paid_amount) ?>"></th>
+                                        <th></th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="3" class="text-right"><?= temp_lang('transactions.refund_amount'); ?></th>
+                                        <th><input type="number" step="0.01" class="form-control" id="refund_amount" name="refund_amount" readonly value="<?= esc($transaction->refund_amount) ?>"></th>
                                         <th></th>
                                     </tr>
                                 </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Payments Section -->
+                    <div class="card mt-3">
+                        <div class="card-header bg-info">
+                            <h3 class="card-title"><?= temp_lang('transactions.payments'); ?></h3>
+                        </div>
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-hover text-nowrap" id="paymentsTable">
+                                <thead>
+                                    <tr>
+                                        <th><?= temp_lang('transactions.method'); ?></th>
+                                        <th width="20%"><?= temp_lang('transactions.amount'); ?></th>
+                                        <th width="20%"><?= temp_lang('transactions.proof'); ?></th>
+                                        <th width="20%"><?= temp_lang('transactions.reference'); ?></th>
+                                        <th width="20%"><?= temp_lang('transactions.note'); ?></th>
+                                        <th width="10%"><button type="button" class="btn btn-sm btn-success" id="addPaymentRow"><i class="fas fa-plus"></i></button></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($payments as $payment): ?>
+                                        <tr>
+                                            <td>
+                                                <select class="form-control" name="payment_method_id[]" required>
+                                                    <?php foreach ($paymentMethods as $pm): ?>
+                                                        <option value="<?= $pm->id; ?>" <?= $payment->method_id == $pm->id ? 'selected' : ''; ?>><?= esc($pm->name); ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </td>
+                                            <td><input type="number" step="0.01" class="form-control payment-amount" name="payment_amount[]" min="0.01" value="<?= esc($payment->amount) ?>" required onchange="calculatePayments()" onkeyup="calculatePayments()"></td>
+                                            <td>
+                                                <input type="hidden" name="payment_date[]" value="<?= date('Y-m-d H:i:s', strtotime($payment->paid_at)) ?>">
+                                                <?php if ($payment->payment_proof): ?>
+                                                    <small class="d-block mb-1"><a href="<?= asset_url('uploads/payments/' . $payment->payment_proof); ?>" target="_blank">View Existing Proof</a></small>
+                                                <?php endif; ?>
+                                                <input type="file" class="form-control-file" name="payment_proof[]" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
+                                            </td>
+                                            <td><input type="text" class="form-control" name="payment_reference[]" value="<?= esc($payment->payment_reference) ?>" placeholder="Reference"></td>
+                                            <td><input type="text" class="form-control" name="payment_note[]" value="<?= esc($payment->note) ?>" placeholder="Note"></td>
+                                            <td><button type="button" class="btn btn-sm btn-danger remove-payment-row"><i class="fas fa-trash"></i></button></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Refunds Section -->
+                    <div class="card mt-3">
+                        <div class="card-header bg-warning">
+                            <h3 class="card-title"><?= temp_lang('transactions.refunds'); ?></h3>
+                        </div>
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-hover text-nowrap" id="refundsTable">
+                                <thead>
+                                    <tr>
+                                        <th><?= temp_lang('transactions.method'); ?></th>
+                                        <th width="20%"><?= temp_lang('transactions.amount'); ?></th>
+                                        <th width="30%"><?= temp_lang('transactions.reason'); ?></th>
+                                        <th width="20%"><?= temp_lang('transactions.reference'); ?></th>
+                                        <th width="10%"><button type="button" class="btn btn-sm btn-success" id="addRefundRow"><i class="fas fa-plus"></i></button></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($refunds as $refund): ?>
+                                        <tr>
+                                            <td>
+                                                <select class="form-control" name="refund_method_id[]" required>
+                                                    <?php foreach ($paymentMethods as $pm): ?>
+                                                        <option value="<?= $pm->id; ?>" <?= $refund->method_id == $pm->id ? 'selected' : ''; ?>><?= esc($pm->name); ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </td>
+                                            <td><input type="number" step="0.01" class="form-control refund-amount" name="refund_amount[]" min="0.01" value="<?= esc($refund->amount) ?>" required onchange="calculateRefunds()" onkeyup="calculateRefunds()"></td>
+                                            <td><input type="text" class="form-control" name="refund_reason[]" value="<?= esc($refund->reason) ?>" placeholder="Reason" required></td>
+                                            <td><input type="text" class="form-control" name="refund_reference[]" value="<?= esc($refund->refund_reference) ?>" placeholder="Reference"></td>
+                                            <td><button type="button" class="btn btn-sm btn-danger remove-refund-row"><i class="fas fa-trash"></i></button></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
                             </table>
                         </div>
                         <div class="card-footer">
@@ -198,6 +285,7 @@
                             <a href="<?= base_url($link); ?>" class="btn btn-secondary"><?= temp_lang('app.cancel'); ?></a>
                         </div>
                     </div>
+
                 </div>
 
             </div>
@@ -207,9 +295,16 @@
 
 <!-- Product Options Template -->
 <select id="productOptions" style="display:none;">
-    <option value="">- Select Product -</option>
+    <option value="">- <?= temp_lang('app.select'); ?> <?= temp_lang('products.product'); ?> -</option>
     <?php foreach ($products as $product): ?>
         <option value="<?= $product->id; ?>" data-price="<?= $product->price; ?>" data-stock="<?= $product->qty; ?>"><?= esc($product->name); ?> (Stock: <?= $product->qty; ?>)</option>
+    <?php endforeach; ?>
+</select>
+
+<!-- Payment Options Template -->
+<select id="paymentOptions" style="display:none;">
+    <?php foreach ($paymentMethods as $pm): ?>
+        <option value="<?= $pm->id; ?>"><?= esc($pm->name); ?></option>
     <?php endforeach; ?>
 </select>
 
@@ -252,9 +347,88 @@
             calculateGrandTotal();
         });
 
+        // Add Payment Row
+        $('#addPaymentRow').click(function() {
+            var options = $('#paymentOptions').html();
+            var row = `<tr>
+                <td><select class="form-control" name="payment_method_id[]" required>${options}</select></td>
+                <td><input type="number" step="0.01" class="form-control payment-amount" name="payment_amount[]" min="0.01" required onchange="calculatePayments()" onkeyup="calculatePayments()"></td>
+                <td>
+                    <!-- New row has no original date, server will generate one -->
+                    <input type="hidden" name="payment_date[]" value="">
+                    <input type="file" class="form-control-file" name="payment_proof[]" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
+                </td>
+                <td><input type="text" class="form-control" name="payment_reference[]" placeholder="Reference"></td>
+                <td><input type="text" class="form-control" name="payment_note[]" placeholder="Note"></td>
+                <td><button type="button" class="btn btn-sm btn-danger remove-payment-row"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+            $('#paymentsTable tbody').append(row);
+        });
+
+        $(document).on('click', '.remove-payment-row', function() {
+            $(this).closest('tr').remove();
+            calculatePayments();
+        });
+
+        // Add Refund Row
+        $('#addRefundRow').click(function() {
+            var options = $('#paymentOptions').html();
+            var row = `<tr>
+                <td><select class="form-control" name="refund_method_id[]" required>${options}</select></td>
+                <td><input type="number" step="0.01" class="form-control refund-amount" name="refund_amount[]" min="0.01" required onchange="calculateRefunds()" onkeyup="calculateRefunds()"></td>
+                <td><input type="text" class="form-control" name="refund_reason[]" placeholder="Reason" required></td>
+                <td><input type="text" class="form-control" name="refund_reference[]" placeholder="Reference"></td>
+                <td><button type="button" class="btn btn-sm btn-danger remove-refund-row"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+            $('#refundsTable tbody').append(row);
+        });
+
+        $(document).on('click', '.remove-refund-row', function() {
+            $(this).closest('tr').remove();
+            calculateRefunds();
+        });
+
         calculateGrandTotal();
+        calculatePayments();
+        calculateRefunds();
 
     });
+
+    function calculatePayments() {
+        var totalPaid = 0;
+        $('.payment-amount').each(function() {
+            totalPaid += parseFloat($(this).val()) || 0;
+        });
+        $('#paid_amount').val(totalPaid.toFixed(2));
+        updatePaymentStatus();
+    }
+
+    function calculateRefunds() {
+        var totalRefund = 0;
+        $('.refund-amount').each(function() {
+            totalRefund += parseFloat($(this).val()) || 0;
+        });
+        $('#refund_amount').val(totalRefund.toFixed(2));
+        updatePaymentStatus();
+    }
+
+    function updatePaymentStatus() {
+        var totalPaid = parseFloat($('#paid_amount').val()) || 0;
+        var totalRefund = parseFloat($('#refund_amount').val()) || 0;
+        var grandTotal = parseFloat($('#grand_total').val()) || 0;
+
+        if (totalRefund > 0 && totalRefund >= totalPaid) {
+            $('#payment_status').val('refunded');
+        } else if (totalPaid > 0) {
+            if (totalPaid >= grandTotal) {
+                $('#payment_status').val('paid');
+            } else {
+                $('#payment_status').val('partial');
+            }
+        } else {
+            $('#payment_status').val('unpaid');
+        }
+    }
 
     function updatePrice(sel) {
         var selectedOption = $(sel).find(':selected');

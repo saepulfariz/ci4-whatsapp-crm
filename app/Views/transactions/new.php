@@ -78,6 +78,32 @@
                             <hr>
 
                             <div class="form-group">
+                                <label for="status"><?= temp_lang('transactions.status'); ?></label>
+                                <?php
+                                $statuses = ['pending', 'waiting_payment', 'paid', 'processing', 'delivered', 'cancelled'];
+                                ?>
+                                <select class="form-control" id="status" name="status">
+                                    <?php foreach ($statuses as $st): ?>
+                                        <option value="<?= $st; ?>" <?= old('status', 'pending') == $st ? 'selected' : ''; ?>><?= ucfirst(str_replace('_', ' ', $st)); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="payment_status"><?= temp_lang('transactions.payment_status'); ?></label>
+                                <?php
+                                $pStatuses = ['unpaid', 'partial', 'paid', 'refunded'];
+                                ?>
+                                <select class="form-control" id="payment_status" name="payment_status">
+                                    <?php foreach ($pStatuses as $pst): ?>
+                                        <option value="<?= $pst; ?>" <?= old('payment_status', 'unpaid') == $pst ? 'selected' : ''; ?>><?= ucfirst($pst); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <hr>
+
+                            <div class="form-group">
                                 <label for="note"><?= temp_lang('transactions.note'); ?></label>
                                 <textarea class="form-control" id="note" name="note" rows="3"><?= old('note'); ?></textarea>
                             </div>
@@ -124,10 +150,33 @@
                                     </tr>
                                     <tr>
                                         <th colspan="3" class="text-right"><?= temp_lang('transactions.paid_amount'); ?></th>
-                                        <th><input type="number" step="0.01" class="form-control" id="paid_amount" name="paid_amount" value="<?= old('paid_amount', 0); ?>" onchange="calculateGrandTotal()"></th>
+                                        <th><input type="number" readonly step="0.01" class="form-control" id="paid_amount" name="paid_amount" value="<?= old('paid_amount', 0); ?>" onchange="calculateGrandTotal()"></th>
                                         <th></th>
                                     </tr>
                                 </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-header bg-info">
+                            <h3 class="card-title"><?= temp_lang('transactions.payments'); ?></h3>
+                        </div>
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-hover text-nowrap" id="paymentsTable">
+                                <thead>
+                                    <tr>
+                                        <th><?= temp_lang('transactions.method'); ?></th>
+                                        <th width="20%"><?= temp_lang('transactions.amount'); ?></th>
+                                        <th width="20%"><?= temp_lang('transactions.proof'); ?></th>
+                                        <th width="20%"><?= temp_lang('transactions.reference'); ?></th>
+                                        <th width="20%"><?= temp_lang('transactions.note'); ?></th>
+                                        <th width="10%"><button type="button" class="btn btn-sm btn-success" id="addPaymentRow"><i class="fas fa-plus"></i></button></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows added via JS -->
+                                </tbody>
                             </table>
                         </div>
                         <div class="card-footer">
@@ -147,6 +196,13 @@
     <option value="">- <?= temp_lang('app.select'); ?> <?= temp_lang('products.product'); ?> -</option>
     <?php foreach ($products as $product): ?>
         <option value="<?= $product->id; ?>" data-price="<?= $product->price; ?>" data-stock="<?= $product->qty; ?>"><?= esc($product->name); ?> (Stock: <?= $product->qty; ?>)</option>
+    <?php endforeach; ?>
+</select>
+
+<!-- Payment Options Template -->
+<select id="paymentOptions" style="display:none;">
+    <?php foreach ($paymentMethods as $pm): ?>
+        <option value="<?= $pm->id; ?>"><?= esc($pm->name); ?></option>
     <?php endforeach; ?>
 </select>
 
@@ -189,10 +245,50 @@
             calculateGrandTotal();
         });
 
-        // Ensure at least one row by default if none exist (could check for old data too)
+        // Ensure at least one product row by default
         $('#addRow').trigger('click');
 
+        // Add Payment Row
+        $('#addPaymentRow').click(function() {
+            var options = $('#paymentOptions').html();
+            var row = `<tr>
+                <td><select class="form-control" name="payment_method_id[]" required>${options}</select></td>
+                <td><input type="number" step="0.01" class="form-control payment-amount" name="payment_amount[]" min="0.01" required onchange="calculatePayments()" onkeyup="calculatePayments()"></td>
+                <td><input type="file" class="form-control-file" name="payment_proof[]" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"></td>
+                <td><input type="text" class="form-control" name="payment_reference[]" placeholder="Reference"></td>
+                <td><input type="text" class="form-control" name="payment_note[]" placeholder="Note"></td>
+                <td><button type="button" class="btn btn-sm btn-danger remove-payment-row"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+            $('#paymentsTable tbody').append(row);
+        });
+
+        // Remove payment row
+        $(document).on('click', '.remove-payment-row', function() {
+            $(this).closest('tr').remove();
+            calculatePayments();
+        });
+
     });
+
+    function calculatePayments() {
+        var totalPaid = 0;
+        $('.payment-amount').each(function() {
+            totalPaid += parseFloat($(this).val()) || 0;
+        });
+        $('#paid_amount').val(totalPaid.toFixed(2));
+
+        // Auto-update payment status dropdown based on logic
+        var grandTotal = parseFloat($('#grand_total').val()) || 0;
+        if (totalPaid > 0) {
+            if (totalPaid >= grandTotal) {
+                $('#payment_status').val('paid');
+            } else {
+                $('#payment_status').val('partial');
+            }
+        } else {
+            $('#payment_status').val('unpaid');
+        }
+    }
 
     function updatePrice(sel) {
         var selectedOption = $(sel).find(':selected');

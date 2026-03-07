@@ -18,6 +18,14 @@ return [
     'grand_total' => 'Grand Total',
     'order_items' => 'Order Items',
 
+    'payments' => 'Payments',
+    'method' => 'Method',
+    'amount' => 'Amount',
+    'proof' => 'Proof',
+    'reference' => 'Reference',
+    'refunds' => 'Refunds',
+    'reason' => 'Reason',
+
     'customer_info' => 'Customer & Order Info',
     'order_summary' => 'Order Summary',
 

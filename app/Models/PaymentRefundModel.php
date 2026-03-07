@@ -2,30 +2,28 @@
 
 namespace App\Models;
 
-use App\Entities\TransactionDetail;
+use App\Entities\PaymentRefund;
 use App\Traits\LogUserTrait;
 use CodeIgniter\Model;
 
-class TransactionDetailModel extends Model
+class PaymentRefundModel extends Model
 {
     use LogUserTrait;
 
-    protected $table            = 'transaction_details';
+    protected $table            = 'payment_refunds';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = TransactionDetail::class;
+    protected $returnType       = PaymentRefund::class;
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
         'transaction_id',
-        'product_id',
-        'qty',
-        'price',
-        'subtotal',
-        'discount_amount',
-        'total_price',
+        'amount',
+        'reason',
+        'method_id',
+        'refund_reference',
     ];
-    protected $cacheKey = 'transaction_details';
+    protected $cacheKey = 'payment_refunds';
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = false;

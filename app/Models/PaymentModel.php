@@ -2,30 +2,31 @@
 
 namespace App\Models;
 
-use App\Entities\TransactionDetail;
+use App\Entities\Payment;
 use App\Traits\LogUserTrait;
 use CodeIgniter\Model;
 
-class TransactionDetailModel extends Model
+class PaymentModel extends Model
 {
     use LogUserTrait;
 
-    protected $table            = 'transaction_details';
+    protected $table            = 'payments';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = TransactionDetail::class;
+    protected $returnType       = Payment::class;
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
         'transaction_id',
-        'product_id',
-        'qty',
-        'price',
-        'subtotal',
-        'discount_amount',
-        'total_price',
+        'method_id',
+        'amount',
+        'status',
+        'paid_at',
+        'payment_proof',
+        'payment_reference',
+        'note',
     ];
-    protected $cacheKey = 'transaction_details';
+    protected $cacheKey = 'payments';
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = false;

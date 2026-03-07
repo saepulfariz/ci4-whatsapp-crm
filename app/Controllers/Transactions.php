@@ -8,6 +8,9 @@ use App\Models\TransactionModel;
 use App\Models\TransactionDetailModel;
 use App\Models\CustomerModel;
 use App\Models\ProductModel;
+use App\Models\PaymentMethodModel;
+use App\Models\PaymentModel;
+use App\Models\PaymentRefundModel;
 
 class Transactions extends BaseController
 {
@@ -15,6 +18,9 @@ class Transactions extends BaseController
     private $detailModel;
     private $customerModel;
     private $productModel;
+    private $paymentMethodModel;
+    private $paymentModel;
+    private $paymentRefundModel;
 
     private $link = 'transactions';
     private $view = 'transactions';
@@ -27,6 +33,9 @@ class Transactions extends BaseController
         $this->detailModel = new TransactionDetailModel();
         $this->customerModel = new CustomerModel();
         $this->productModel = new ProductModel();
+        $this->paymentMethodModel = new PaymentMethodModel();
+        $this->paymentModel = new PaymentModel();
+        $this->paymentRefundModel = new PaymentRefundModel();
     }
 
     public function index()
@@ -74,7 +83,13 @@ class Transactions extends BaseController
             'title' => $this->title . ' Detail',
             'link' => $this->link,
             'transaction' => $transaction,
-            'details' => $details
+            'details' => $details,
+            'payments' => $this->paymentModel->select('payments.*, payment_methods.name as method_name')
+                ->join('payment_methods', 'payment_methods.id = payments.method_id')
+                ->where('transaction_id', $id)->findAll(),
+            'refunds' => $this->paymentRefundModel->select('payment_refunds.*, payment_methods.name as method_name')
+                ->join('payment_methods', 'payment_methods.id = payment_refunds.method_id')
+                ->where('transaction_id', $id)->findAll(),
         ];
 
         return view($this->view . '/show', $data);
@@ -92,6 +107,7 @@ class Transactions extends BaseController
             'link' => $this->link,
             'customers' => $this->customerModel->where('is_active', 1)->findAll(),
             'products' => $this->productModel->where('is_active', 1)->findAll(),
+            'paymentMethods' => $this->paymentMethodModel->findAll(),
         ];
 
         return view($this->view . '/new', $data);
@@ -189,17 +205,64 @@ class Transactions extends BaseController
             $taxTotal = $this->request->getVar('tax_total') ?? 0;
             $totalAmount = ($subtotalPrice - $discountTotal) + $taxTotal;
 
+            // Process Payments
+            $paymentMethodIds = $this->request->getVar('payment_method_id');
+            $paymentAmounts = $this->request->getVar('payment_amount');
+            $paymentReferences = $this->request->getVar('payment_reference');
+            $paymentNotes = $this->request->getVar('payment_note');
+            $paymentProofFiles = $this->request->getFiles();
+
+            $paidAmount = 0;
+            $paymentsData = [];
+
+            if ($paymentMethodIds) {
+                for ($i = 0; $i < count($paymentMethodIds); $i++) {
+                    $amt = floatval($paymentAmounts[$i]);
+                    if ($amt > 0) {
+                        $paidAmount += $amt;
+                        
+                        // Handle Optional Payment Proof Upload
+                        $proofName = null;
+                        if (isset($paymentProofFiles['payment_proof'][$i]) && $paymentProofFiles['payment_proof'][$i]->isValid() && !$paymentProofFiles['payment_proof'][$i]->hasMoved()) {
+                            $proofName = $paymentProofFiles['payment_proof'][$i]->getRandomName();
+                            $paymentProofFiles['payment_proof'][$i]->move('uploads/payments/', $proofName);
+                        }
+
+                        $paymentsData[] = [
+                            'method_id' => $paymentMethodIds[$i],
+                            'amount' => $amt,
+                            'status' => 'paid',
+                            'paid_at' => date('Y-m-d H:i:s'),
+                            'payment_proof' => $proofName,
+                            'payment_reference' => $paymentReferences[$i] ?? null,
+                            'note' => $paymentNotes[$i] ?? null,
+                        ];
+                    }
+                }
+            }
+
+            // Determine Payment Status
+            $paymentStatus = 'unpaid';
+            if ($paidAmount > 0) {
+                if ($paidAmount >= $totalAmount) {
+                    $paymentStatus = 'paid';
+                } else {
+                    $paymentStatus = 'partial';
+                }
+            }
+
             $transactionData = [
                 'customer_id' => $customerId,
-                'status' => 'pending', // Default
+                'status' => $this->request->getVar('status') ?? 'pending',
+                'payment_status' => $this->request->getVar('payment_status') ?? $paymentStatus,
                 'order_date' => $orderDate,
                 'schedule_date' => $scheduleDate,
                 'subtotal_price' => $subtotalPrice,
                 'discount_total' => $discountTotal,
                 'tax_total' => $taxTotal,
                 'total_amount' => $totalAmount,
-                'paid_amount' => 0,
-                'payment_status' => 'unpaid', // Default
+                'paid_amount' => $paidAmount,
+                'refund_amount' => 0,
                 'note' => $this->request->getVar('note', FILTER_SANITIZE_STRING),
             ];
 
@@ -212,6 +275,14 @@ class Transactions extends BaseController
 
             if (!empty($detailsData)) {
                 $this->detailModel->insertBatch($detailsData);
+            }
+
+            foreach ($paymentsData as &$pd) {
+                $pd['transaction_id'] = $transactionId;
+            }
+
+            if (!empty($paymentsData)) {
+                $this->paymentModel->insertBatch($paymentsData);
             }
 
             if ($this->db->transStatus() === false) {
@@ -250,6 +321,9 @@ class Transactions extends BaseController
             'details' => $details,
             'customers' => $this->customerModel->where('is_active', 1)->findAll(),
             'products' => $this->productModel->where('is_active', 1)->findAll(),
+            'paymentMethods' => $this->paymentMethodModel->findAll(),
+            'payments' => $this->paymentModel->where('transaction_id', $id)->findAll(),
+            'refunds' => $this->paymentRefundModel->where('transaction_id', $id)->findAll(),
         ];
 
         return view($this->view . '/edit', $data);
@@ -274,7 +348,7 @@ class Transactions extends BaseController
         $rules = [
             'order_date' => 'required',
             'product_id.*' => 'required',
-            'qty.*' => 'required|numeric',
+            // 'qty.*' => 'required|numeric',
         ];
 
         if ($isNewCustomer) {
@@ -314,6 +388,7 @@ class Transactions extends BaseController
             $qtys = $this->request->getVar('qty');
             $prices = $this->request->getVar('price');
 
+
             // Find old details to offset the stock check
             $oldDetails = $this->detailModel->where('transaction_id', $id)->findAll();
             $oldQtys = [];
@@ -325,12 +400,12 @@ class Transactions extends BaseController
                 for ($i = 0; $i < count($products); $i++) {
                     $productId = $products[$i];
                     $qty = $qtys[$i];
-                    
+
                     $product = $this->productModel->find($productId);
                     if ($product) {
                         $previouslyOrdered = isset($oldQtys[$productId]) ? $oldQtys[$productId] : 0;
-                        $availableStock = $product->qty + $previouslyOrdered; 
-                        
+                        $availableStock = $product->qty + $previouslyOrdered;
+
                         if ($qty > $availableStock) {
                             $this->db->transRollback();
                             return redirect()->back()->with('error', "Ordered quantity for {$product->name} exceeds available stock ({$availableStock}).")->withInput();
@@ -370,12 +445,93 @@ class Transactions extends BaseController
             $discountTotal = $this->request->getVar('discount_total') ?? $transaction->discount_total;
             $taxTotal = $this->request->getVar('tax_total') ?? $transaction->tax_total;
             $totalAmount = ($subtotalPrice - $discountTotal) + $taxTotal;
-            $paidAmount = $this->request->getVar('paid_amount') ?? $transaction->paid_amount;
+
+            // Process Payments
+            $paymentMethodIds = $this->request->getVar('payment_method_id') ?? [];
+            $paymentAmounts = $this->request->getVar('payment_amount') ?? [];
+            $paymentDates = $this->request->getVar('payment_date') ?? [];
+            $paymentReferences = $this->request->getVar('payment_reference') ?? [];
+            $paymentNotes = $this->request->getVar('payment_note') ?? [];
+            $paymentProofFiles = $this->request->getFiles();
+            
+            // Need existing payments to retain old proofs if not overwritten
+            $existingPayments = $this->paymentModel->where('transaction_id', $id)->findAll();
+
+            $paidAmount = 0;
+            $paymentsData = [];
+
+            if ($paymentMethodIds) {
+                for ($i = 0; $i < count($paymentMethodIds); $i++) {
+                    $amt = floatval($paymentAmounts[$i]);
+                    if ($amt > 0) {
+                        $paidAmount += $amt;
+                        
+                        // Handle Optional Payment Proof Upload or Retain Old
+                        $proofName = null;
+                        if (isset($existingPayments[$i]) && !empty($existingPayments[$i]->payment_proof)) {
+                            $proofName = $existingPayments[$i]->payment_proof;
+                        }
+
+                        if (isset($paymentProofFiles['payment_proof'][$i]) && $paymentProofFiles['payment_proof'][$i]->isValid() && !$paymentProofFiles['payment_proof'][$i]->hasMoved()) {
+                            $proofName = $paymentProofFiles['payment_proof'][$i]->getRandomName();
+                            $paymentProofFiles['payment_proof'][$i]->move('uploads/payments/', $proofName);
+                        }
+
+                        $paymentsData[] = [
+                            'transaction_id' => $id,
+                            'method_id' => $paymentMethodIds[$i],
+                            'amount' => $amt,
+                            'status' => 'paid',
+                            'paid_at' => !empty($paymentDates[$i]) ? date('Y-m-d H:i:s', strtotime($paymentDates[$i])) : date('Y-m-d H:i:s'),
+                            'payment_proof' => $proofName,
+                            'payment_reference' => $paymentReferences[$i] ?? null,
+                            'note' => $paymentNotes[$i] ?? null,
+                        ];
+                    }
+                }
+            }
+
+            // Process Refunds
+            $refundMethodIds = $this->request->getVar('refund_method_id') ?? [];
+            $refundAmounts = $this->request->getVar('refund_amount') ?? [];
+            $refundReasons = $this->request->getVar('refund_reason') ?? [];
+            $refundReferences = $this->request->getVar('refund_reference') ?? [];
+
+            $refundAmount = 0;
+            $refundsData = [];
+
+            if ($refundMethodIds) {
+                for ($i = 0; $i < count($refundMethodIds); $i++) {
+                    $amt = floatval($refundAmounts[$i]);
+                    if ($amt > 0) {
+                        $refundAmount += $amt;
+                        $refundsData[] = [
+                            'transaction_id' => $id,
+                            'method_id' => $refundMethodIds[$i],
+                            'amount' => $amt,
+                            'reason' => $refundReasons[$i] ?? 'Customer Refund',
+                            'refund_reference' => $refundReferences[$i] ?? null,
+                        ];
+                    }
+                }
+            }
+
+            // Determine Payment Status
+            $paymentStatus = 'unpaid';
+            if ($refundAmount > 0 && $refundAmount >= $paidAmount) {
+                $paymentStatus = 'refunded';
+            } elseif ($paidAmount > 0) {
+                if ($paidAmount >= $totalAmount) {
+                    $paymentStatus = 'paid';
+                } else {
+                    $paymentStatus = 'partial';
+                }
+            }
 
             $transactionData = [
                 'customer_id' => $customerId,
                 'status' => $this->request->getVar('status') ?? $transaction->status,
-                'payment_status' => $this->request->getVar('payment_status') ?? $transaction->payment_status,
+                'payment_status' => $this->request->getVar('payment_status') ?? $paymentStatus,
                 'order_date' => $orderDate,
                 'schedule_date' => $scheduleDate,
                 'delivery_date' => $deliveryDate,
@@ -384,16 +540,28 @@ class Transactions extends BaseController
                 'tax_total' => $taxTotal,
                 'total_amount' => $totalAmount,
                 'paid_amount' => $paidAmount,
-                'note' => $this->request->getVar('note', FILTER_SANITIZE_STRING),
+                'refund_amount' => $refundAmount,
+                'note' => $this->request->getVar('note', FILTER_SANITIZE_STRING) ?? $transaction->note,
             ];
 
             $this->model->update($id, $transactionData);
 
             // Delete old details and insert new ones
             $this->detailModel->where('transaction_id', $id)->delete();
-
             if (!empty($detailsData)) {
                 $this->detailModel->insertBatch($detailsData);
+            }
+
+            // Delete old payments and insert new ones
+            $this->paymentModel->where('transaction_id', $id)->delete();
+            if (!empty($paymentsData)) {
+                $this->paymentModel->insertBatch($paymentsData);
+            }
+
+            // Delete old refunds and insert new ones
+            $this->paymentRefundModel->where('transaction_id', $id)->delete();
+            if (!empty($refundsData)) {
+                $this->paymentRefundModel->insertBatch($refundsData);
             }
 
             if ($this->db->transStatus() === false) {
@@ -405,6 +573,7 @@ class Transactions extends BaseController
 
             return redirect()->with('success', temp_lang('transactions.update_success') ?? 'Transaction updated successfully')->to($this->link);
         } catch (\Throwable $th) {
+            log_message('info', 'error disini');
             $this->db->transRollback();
             return redirect()->back()->with('error', $th->getMessage())->withInput();
         }
