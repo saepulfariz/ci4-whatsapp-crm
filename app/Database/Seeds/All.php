@@ -14,5 +14,6 @@ class All extends Seeder
 
         $this->call('SeedCategories');
         $this->call('SeedProducts');
+        $this->call('SeedCustomers');
     }
 }

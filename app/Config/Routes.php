@@ -37,4 +37,8 @@ $routes->get('products/(:any)/activate', '\App\Controllers\Products::activate/$1
 $routes->get('products/(:any)/deactivate', '\App\Controllers\Products::deactivate/$1');
 $routes->resource('products', ['controller' => '\App\Controllers\Products', 'filter' => 'session']);
 
+$routes->get('customers/(:any)/activate', '\App\Controllers\Customers::activate/$1');
+$routes->get('customers/(:any)/deactivate', '\App\Controllers\Customers::deactivate/$1');
+$routes->resource('customers', ['controller' => '\App\Controllers\Customers', 'filter' => 'session']);
+
 service('auth')->routes($routes);

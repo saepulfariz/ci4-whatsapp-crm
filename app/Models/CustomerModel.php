@@ -2,30 +2,27 @@
 
 namespace App\Models;
 
-use App\Entities\Product;
+use App\Entities\Customer;
 use App\Traits\LogUserTrait;
 use CodeIgniter\Model;
 
-class ProductModel extends Model
+class CustomerModel extends Model
 {
     use LogUserTrait;
 
-    protected $table            = 'products';
+    protected $table            = 'customers';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = Product::class;
+    protected $returnType       = Customer::class;
     protected $useSoftDeletes   = true;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'category_id',
         'name',
-        'price',
-        'qty',
-        'image',
-        'description',
+        'phone',
+        'address',
         'is_active',
     ];
-    protected $cacheKey = 'products';
+    protected $cacheKey = 'customers';
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = false;
