@@ -41,4 +41,6 @@ $routes->get('customers/(:any)/activate', '\App\Controllers\Customers::activate/
 $routes->get('customers/(:any)/deactivate', '\App\Controllers\Customers::deactivate/$1');
 $routes->resource('customers', ['controller' => '\App\Controllers\Customers', 'filter' => 'session']);
 
+$routes->resource('transactions', ['controller' => '\App\Controllers\Transactions', 'filter' => 'session']);
+
 service('auth')->routes($routes);

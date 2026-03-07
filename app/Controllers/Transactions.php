@@ -1,0 +1,446 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Controllers\BaseController;
+use CodeIgniter\HTTP\ResponseInterface;
+use App\Models\TransactionModel;
+use App\Models\TransactionDetailModel;
+use App\Models\CustomerModel;
+use App\Models\ProductModel;
+
+class Transactions extends BaseController
+{
+    private $model;
+    private $detailModel;
+    private $customerModel;
+    private $productModel;
+
+    private $link = 'transactions';
+    private $view = 'transactions';
+    private $title = 'Transactions';
+
+    public function __construct()
+    {
+        $this->title = temp_lang('transactions.transactions') ?? 'Transactions';
+        $this->model = new TransactionModel();
+        $this->detailModel = new TransactionDetailModel();
+        $this->customerModel = new CustomerModel();
+        $this->productModel = new ProductModel();
+    }
+
+    public function index()
+    {
+        $redirect = checkPermission('transactions.access');
+        if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
+            return $redirect;
+        }
+
+        $transactions = $this->model->select('transactions.*, customers.name as customer_name')
+            ->join('customers', 'customers.id = transactions.customer_id')
+            ->orderBy('transactions.id', 'desc')
+            ->findAll();
+
+        $data = [
+            'title' => $this->title,
+            'link' => $this->link,
+            'transactions' => $transactions
+        ];
+
+        return view($this->view . '/index', $data);
+    }
+
+    public function show($id = null)
+    {
+        $redirect = checkPermission('transactions.access');
+        if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
+            return $redirect;
+        }
+
+        $transaction = $this->model->select('transactions.*, customers.name as customer_name, customers.phone, customers.address')
+            ->join('customers', 'customers.id = transactions.customer_id')
+            ->find($id);
+
+        if (!$transaction) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $details = $this->detailModel->select('transaction_details.*, products.name as product_name')
+            ->join('products', 'products.id = transaction_details.product_id')
+            ->where('transaction_id', $id)
+            ->findAll();
+
+        $data = [
+            'title' => $this->title . ' Detail',
+            'link' => $this->link,
+            'transaction' => $transaction,
+            'details' => $details
+        ];
+
+        return view($this->view . '/show', $data);
+    }
+
+    public function new()
+    {
+        $redirect = checkPermission('transactions.create');
+        if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
+            return $redirect;
+        }
+
+        $data = [
+            'title' => $this->title,
+            'link' => $this->link,
+            'customers' => $this->customerModel->where('is_active', 1)->findAll(),
+            'products' => $this->productModel->where('is_active', 1)->findAll(),
+        ];
+
+        return view($this->view . '/new', $data);
+    }
+
+    public function create()
+    {
+        $redirect = checkPermission('transactions.create');
+        if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
+            return $redirect;
+        }
+
+        $input = $this->request->getVar();
+        $isNewCustomer = isset($input['is_new_customer']) && $input['is_new_customer'] == '1';
+
+        $rules = [
+            'order_date' => 'required',
+            'product_id.*' => 'required',
+            'qty.*' => 'required|numeric',
+        ];
+
+        if ($isNewCustomer) {
+            $rules['customer_name'] = 'required';
+            $rules['customer_phone'] = 'required';
+            $rules['customer_address'] = 'required';
+        } else {
+            $rules['customer_id'] = 'required';
+        }
+
+        if (!$this->validateData($input, $rules)) {
+            return redirect()->back()->withInput()->with('error', 'Validation failed. Please check the inputs.');
+        }
+
+        $this->db->transBegin();
+
+        try {
+            $customerId = $this->request->getVar('customer_id');
+
+            if ($isNewCustomer) {
+                $customerData = [
+                    'name' => $this->request->getVar('customer_name', FILTER_SANITIZE_STRING),
+                    'phone' => $this->request->getVar('customer_phone', FILTER_SANITIZE_STRING),
+                    'address' => $this->request->getVar('customer_address', FILTER_SANITIZE_STRING),
+                    'is_active' => 1,
+                ];
+                $this->customerModel->insert($customerData);
+                $customerId = $this->customerModel->getInsertID();
+            }
+
+            $orderDate = $this->request->getVar('order_date');
+            $scheduleDate = $this->request->getVar('schedule_date');
+
+            $subtotalPrice = 0;
+            $products = $this->request->getVar('product_id');
+            $qtys = $this->request->getVar('qty');
+            $prices = $this->request->getVar('price'); // Optional if taking from input, else we query product
+
+            // Validate Stock first
+            for ($i = 0; $i < count($products); $i++) {
+                $productId = $products[$i];
+                $qty = $qtys[$i];
+                $product = $this->productModel->find($productId);
+                if ($product && $qty > $product->qty) {
+                    $this->db->transRollback();
+                    return redirect()->back()->with('error', "Ordered quantity for {$product->name} exceeds available stock ({$product->qty}).")->withInput();
+                }
+            }
+
+            $detailsData = [];
+
+            for ($i = 0; $i < count($products); $i++) {
+                $productId = $products[$i];
+                $qty = $qtys[$i];
+                $price = isset($prices[$i]) ? $prices[$i] : 0;
+
+                if ($price == 0) {
+                    $product = $this->productModel->find($productId);
+                    if ($product) $price = $product->price;
+                }
+
+                $subtotal = $qty * $price;
+                $subtotalPrice += $subtotal;
+
+                $detailsData[] = [
+                    'product_id' => $productId,
+                    'qty' => $qty,
+                    'price' => $price,
+                    'subtotal' => $subtotal,
+                    'discount_amount' => 0,
+                    'total_price' => $subtotal
+                ];
+            }
+
+            $discountTotal = $this->request->getVar('discount_total') ?? 0;
+            $taxTotal = $this->request->getVar('tax_total') ?? 0;
+            $totalAmount = ($subtotalPrice - $discountTotal) + $taxTotal;
+
+            $transactionData = [
+                'customer_id' => $customerId,
+                'status' => 'pending', // Default
+                'order_date' => $orderDate,
+                'schedule_date' => $scheduleDate,
+                'subtotal_price' => $subtotalPrice,
+                'discount_total' => $discountTotal,
+                'tax_total' => $taxTotal,
+                'total_amount' => $totalAmount,
+                'paid_amount' => 0,
+                'payment_status' => 'unpaid', // Default
+                'note' => $this->request->getVar('note', FILTER_SANITIZE_STRING),
+            ];
+
+            $this->model->insert($transactionData);
+            $transactionId = $this->model->getInsertID();
+
+            foreach ($detailsData as &$dd) {
+                $dd['transaction_id'] = $transactionId;
+            }
+
+            if (!empty($detailsData)) {
+                $this->detailModel->insertBatch($detailsData);
+            }
+
+            if ($this->db->transStatus() === false) {
+                $this->db->transRollback();
+                return redirect()->back()->with('error', temp_lang('transactions.create_error') ?? 'Failed to create transaction')->withInput();
+            }
+
+            $this->db->transCommit();
+
+            return redirect()->with('success', temp_lang('transactions.create_success') ?? 'Transaction created successfully')->to($this->link);
+        } catch (\Throwable $th) {
+            $this->db->transRollback();
+            return redirect()->back()->with('error', $th->getMessage())->withInput();
+        }
+    }
+
+    public function edit($id = null)
+    {
+        $redirect = checkPermission('transactions.edit');
+        if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
+            return $redirect;
+        }
+
+        $transaction = $this->model->find($id);
+
+        if (!$transaction) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $details = $this->detailModel->where('transaction_id', $id)->findAll();
+
+        $data = [
+            'title' => $this->title,
+            'link' => $this->link,
+            'transaction' => $transaction,
+            'details' => $details,
+            'customers' => $this->customerModel->where('is_active', 1)->findAll(),
+            'products' => $this->productModel->where('is_active', 1)->findAll(),
+        ];
+
+        return view($this->view . '/edit', $data);
+    }
+
+    public function update($id = null)
+    {
+        $redirect = checkPermission('transactions.edit');
+        if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
+            return $redirect;
+        }
+
+        $transaction = $this->model->find($id);
+
+        if (!$transaction) {
+            return redirect()->to($this->link);
+        }
+
+        $input = $this->request->getVar();
+        $isNewCustomer = isset($input['is_new_customer']) && $input['is_new_customer'] == '1';
+
+        $rules = [
+            'order_date' => 'required',
+            'product_id.*' => 'required',
+            'qty.*' => 'required|numeric',
+        ];
+
+        if ($isNewCustomer) {
+            $rules['customer_name'] = 'required';
+            $rules['customer_phone'] = 'required';
+            $rules['customer_address'] = 'required';
+        } else {
+            $rules['customer_id'] = 'required';
+        }
+
+        if (!$this->validateData($input, $rules)) {
+            return redirect()->back()->withInput()->with('error', 'Validation failed. Please check the inputs.');
+        }
+
+        $this->db->transBegin();
+
+        try {
+            $customerId = $this->request->getVar('customer_id');
+
+            if ($isNewCustomer) {
+                $customerData = [
+                    'name' => $this->request->getVar('customer_name', FILTER_SANITIZE_STRING),
+                    'phone' => $this->request->getVar('customer_phone', FILTER_SANITIZE_STRING),
+                    'address' => $this->request->getVar('customer_address', FILTER_SANITIZE_STRING),
+                    'is_active' => 1,
+                ];
+                $this->customerModel->insert($customerData);
+                $customerId = $this->customerModel->getInsertID();
+            }
+
+            $orderDate = $this->request->getVar('order_date');
+            $scheduleDate = $this->request->getVar('schedule_date') ?: $transaction->schedule_date;
+            $deliveryDate = $this->request->getVar('delivery_date') ?: $transaction->delivery_date;
+
+            $subtotalPrice = 0;
+            $products = $this->request->getVar('product_id');
+            $qtys = $this->request->getVar('qty');
+            $prices = $this->request->getVar('price');
+
+            // Find old details to offset the stock check
+            $oldDetails = $this->detailModel->where('transaction_id', $id)->findAll();
+            $oldQtys = [];
+            foreach ($oldDetails as $od) {
+                $oldQtys[$od->product_id] = $od->qty;
+            }
+
+            if ($products) {
+                for ($i = 0; $i < count($products); $i++) {
+                    $productId = $products[$i];
+                    $qty = $qtys[$i];
+                    
+                    $product = $this->productModel->find($productId);
+                    if ($product) {
+                        $previouslyOrdered = isset($oldQtys[$productId]) ? $oldQtys[$productId] : 0;
+                        $availableStock = $product->qty + $previouslyOrdered; 
+                        
+                        if ($qty > $availableStock) {
+                            $this->db->transRollback();
+                            return redirect()->back()->with('error', "Ordered quantity for {$product->name} exceeds available stock ({$availableStock}).")->withInput();
+                        }
+                    }
+                }
+            }
+
+            $detailsData = [];
+
+            if ($products) {
+                for ($i = 0; $i < count($products); $i++) {
+                    $productId = $products[$i];
+                    $qty = $qtys[$i];
+                    $price = isset($prices[$i]) ? $prices[$i] : 0;
+
+                    if ($price == 0) {
+                        $product = $this->productModel->find($productId);
+                        if ($product) $price = $product->price;
+                    }
+
+                    $subtotal = $qty * $price;
+                    $subtotalPrice += $subtotal;
+
+                    $detailsData[] = [
+                        'transaction_id' => $id,
+                        'product_id' => $productId,
+                        'qty' => $qty,
+                        'price' => $price,
+                        'subtotal' => $subtotal,
+                        'discount_amount' => 0,
+                        'total_price' => $subtotal
+                    ];
+                }
+            }
+
+            $discountTotal = $this->request->getVar('discount_total') ?? $transaction->discount_total;
+            $taxTotal = $this->request->getVar('tax_total') ?? $transaction->tax_total;
+            $totalAmount = ($subtotalPrice - $discountTotal) + $taxTotal;
+            $paidAmount = $this->request->getVar('paid_amount') ?? $transaction->paid_amount;
+
+            $transactionData = [
+                'customer_id' => $customerId,
+                'status' => $this->request->getVar('status') ?? $transaction->status,
+                'payment_status' => $this->request->getVar('payment_status') ?? $transaction->payment_status,
+                'order_date' => $orderDate,
+                'schedule_date' => $scheduleDate,
+                'delivery_date' => $deliveryDate,
+                'subtotal_price' => $subtotalPrice,
+                'discount_total' => $discountTotal,
+                'tax_total' => $taxTotal,
+                'total_amount' => $totalAmount,
+                'paid_amount' => $paidAmount,
+                'note' => $this->request->getVar('note', FILTER_SANITIZE_STRING),
+            ];
+
+            $this->model->update($id, $transactionData);
+
+            // Delete old details and insert new ones
+            $this->detailModel->where('transaction_id', $id)->delete();
+
+            if (!empty($detailsData)) {
+                $this->detailModel->insertBatch($detailsData);
+            }
+
+            if ($this->db->transStatus() === false) {
+                $this->db->transRollback();
+                return redirect()->back()->with('error', temp_lang('transactions.update_error') ?? 'Failed to update transaction')->withInput();
+            }
+
+            $this->db->transCommit();
+
+            return redirect()->with('success', temp_lang('transactions.update_success') ?? 'Transaction updated successfully')->to($this->link);
+        } catch (\Throwable $th) {
+            $this->db->transRollback();
+            return redirect()->back()->with('error', $th->getMessage())->withInput();
+        }
+    }
+
+    public function delete($id = null)
+    {
+        $redirect = checkPermission('transactions.delete');
+        if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
+            return $redirect;
+        }
+
+        $transaction = $this->model->find($id);
+
+        if (!$transaction) {
+            return redirect()->to($this->link);
+        }
+
+        $this->db->transBegin();
+
+        try {
+            // Because useSoftDeletes might be true, we also delete details.
+            $this->detailModel->where('transaction_id', $id)->delete();
+            $this->model->delete($id);
+
+            if ($this->db->transStatus() === false) {
+                $this->db->transRollback();
+                return redirect()->back()->with('error', temp_lang('transactions.delete_error') ?? 'Failed to delete transaction')->withInput();
+            }
+
+            $this->db->transCommit();
+
+            return redirect()->with('success', temp_lang('transactions.delete_success') ?? 'Transaction deleted successfully')->to($this->link);
+        } catch (\Throwable $th) {
+            $this->db->transRollback();
+            return redirect()->back()->with('error', $th->getMessage())->withInput();
+        }
+    }
+}

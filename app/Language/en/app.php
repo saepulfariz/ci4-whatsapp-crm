@@ -15,6 +15,7 @@ return [
     'save'    => 'Save',
     'update'    => 'Update',
     'back'    => 'Back',
+    'select' => 'Select',
 
     'confirm_title' => 'Are you sure?',
     'confirm_btn' => 'Yes, delete it!'

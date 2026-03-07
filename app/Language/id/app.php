@@ -15,6 +15,7 @@ return [
     'save'    => 'Simpan',
     'update'    => 'Ubah',
     'back'    => 'Kembali',
+    'select' => 'Pilih',
 
     'confirm_title' => 'Apa kamu yakin?',
     'confirm_btn' => 'Ya, hapus saja!'
