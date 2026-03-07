@@ -5,13 +5,13 @@ namespace App\Filters;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use App\Models\Superadmin\authMenuModel;
+use App\Models\Superadmin\AuthMenuModel;
 
 class MenuFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        $authMenuModel = new authMenuModel();
+        $authMenuModel = new AuthMenuModel();
         $user = service('auth')->user();
 
         $cache = \Config\Services::cache();
@@ -61,27 +61,23 @@ class MenuFilter implements FilterInterface
         foreach ($menus as $menu) {
             // Jika menu tidak punya permission spesifik, biarkan lolos untuk sementara
             // Filter akhir akan dilakukan saat membangun hirarki berdasarkan parent
-            $permissions = $menu['permission'];
-            $permissions = explode('|', $permissions);
+            $permissionString = $menu['permission'] ?? '';
+            $permissions = $permissionString !== '' ? explode('|', $permissionString) : [];
+
             $can_access = false;
-            if (count($permissions) > 1) {
+
+            if (empty($permissions)) {
+                $can_access = true;
+            } else {
                 foreach ($permissions as $permission) {
                     if ($user && $user->can($permission)) {
                         $can_access = true;
-                    } else {
-                        $can_access = false;
+                        break;
                     }
-                }
-            } else {
-                if (empty($menu['permission']) || ($user && $user->can($permissions[0]))) {
-                    $can_access = true;
-                } else {
-                    $can_access = false;
                 }
             }
 
-            // ($user && $user->can($menu['permission']))
-            if (empty($menu['permission']) || $can_access) {
+            if ($can_access) {
                 $filtered[] = $menu;
             }
         }

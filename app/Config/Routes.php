@@ -7,6 +7,8 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 
+$routes->get('lang/(:segment)', 'Language::switch/$1');
+
 $routes->get('/dashboard', 'Dashboard::index', ['filter' => 'session']);
 
 $routes->group('/superadmin', ['filter' => 'session'], function ($routes) {
@@ -27,5 +29,8 @@ $routes->group('/superadmin', ['filter' => 'session'], function ($routes) {
     $routes->post('auth-menus/updateOrder', '\App\Controllers\Superadmin\AuthMenus::updateOrder');
     $routes->resource('auth-menus', ['controller' => '\App\Controllers\Superadmin\AuthMenus']);
 });
+
+
+$routes->resource('categories', ['controller' => '\App\Controllers\Categories', 'filter' => 'session']);
 
 service('auth')->routes($routes);

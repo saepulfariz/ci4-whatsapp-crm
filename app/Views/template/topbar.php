@@ -8,31 +8,31 @@
 
   <!-- Right navbar links -->
   <ul class="navbar-nav ml-auto">
-    <!-- Notifications Dropdown Menu -->
+
+    <?php
+    $currentLang = service('request')->getLocale();
+    ?>
+
     <li class="nav-item dropdown">
-      <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
-        <i class="far fa-bell"></i>
-        <span class="badge badge-warning navbar-badge">15</span>
+      <a class="nav-link" data-toggle="dropdown" href="#">
+        <?php if ($currentLang === 'id'): ?>
+          🇮🇩 ID
+        <?php else: ?>
+          🇺🇸 EN
+        <?php endif ?>
+        <i class="fas fa-language"></i>
       </a>
-      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-        <span class="dropdown-item dropdown-header">15 Notifications</span>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-          <i class="fas fa-envelope mr-2"></i> 4 new messages
-          <span class="float-right text-muted text-sm">3 mins</span>
+
+      <div class="dropdown-menu dropdown-menu-right">
+        <a href="<?= site_url('lang/id') ?>"
+          class="dropdown-item <?= $currentLang === 'id' ? 'active' : '' ?>">
+          🇮🇩 Indonesia
         </a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-          <i class="fas fa-users mr-2"></i> 8 friend requests
-          <span class="float-right text-muted text-sm">12 hours</span>
+
+        <a href="<?= site_url('lang/en') ?>"
+          class="dropdown-item <?= $currentLang === 'en' ? 'active' : '' ?>">
+          🇺🇸 English
         </a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-          <i class="fas fa-file mr-2"></i> 3 new reports
-          <span class="float-right text-muted text-sm">2 days</span>
-        </a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
       </div>
     </li>
 
@@ -61,8 +61,8 @@
         </li>
         <!-- Menu Footer-->
         <li class="user-footer">
-          <a href="<?= base_url('change_password'); ?>" class="btn btn-default btn-flat">Change Password</a>
-          <a href="<?= base_url('logout'); ?>" class="btn btn-default btn-flat float-right">Logout</a>
+          <a href="<?= base_url('change-password'); ?>" class="btn btn-default btn-flat"><?= temp_lang('app.change-password') ?></a>
+          <a href="<?= base_url('logout'); ?>" class="btn btn-default btn-flat float-right"><?= temp_lang('app.logout') ?></a>
         </li>
       </ul>
     </li>

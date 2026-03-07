@@ -39,6 +39,7 @@ class Filters extends BaseFilters
         'group'      => \CodeIgniter\Shield\Filters\GroupFilter::class,
         'permission' => \CodeIgniter\Shield\Filters\PermissionFilter::class,
         'menu' => \App\Filters\MenuFilter::class,
+        'language' => \App\Filters\LanguageFilter::class,
     ];
 
     /**
@@ -82,6 +83,7 @@ class Filters extends BaseFilters
             // 'invalidchars',
             'session' => ['except' => ['/', 'login*', 'register', 'auth/a/*', 'logout', 'api/*', 'dashboard']],
             'menu' => ['except' => ['api/*']],
+            'language'
         ],
         'after' => [
             // 'honeypot',

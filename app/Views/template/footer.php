@@ -93,13 +93,14 @@
     const ket = e.getAttribute('data-ket');
     const href = e.getAttribute('data-href') ? e.getAttribute('data-href') : e.getAttribute('href');
     Swal.fire({
-      title: 'Are you sure?',
+      title: '<?= temp_lang('app.confirm_title'); ?>',
       text: ket,
       icon: 'warning',
       showCancelButton: true,
+      cancelButtonText: '<?= temp_lang('app.cancel'); ?>',
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!'
+      confirmButtonText: '<?= temp_lang('app.confirm_btn'); ?>'
     }).then((result) => {
 
       if (result.value) {
