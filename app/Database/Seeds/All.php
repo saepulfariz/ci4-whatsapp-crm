@@ -13,5 +13,6 @@ class All extends Seeder
         $this->call('SeedAuthMenus');
 
         $this->call('SeedCategories');
+        $this->call('SeedProducts');
     }
 }

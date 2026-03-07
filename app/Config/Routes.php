@@ -33,4 +33,8 @@ $routes->group('/superadmin', ['filter' => 'session'], function ($routes) {
 
 $routes->resource('categories', ['controller' => '\App\Controllers\Categories', 'filter' => 'session']);
 
+$routes->get('products/(:any)/activate', '\App\Controllers\Products::activate/$1');
+$routes->get('products/(:any)/deactivate', '\App\Controllers\Products::deactivate/$1');
+$routes->resource('products', ['controller' => '\App\Controllers\Products', 'filter' => 'session']);
+
 service('auth')->routes($routes);
