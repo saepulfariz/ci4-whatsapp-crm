@@ -60,10 +60,10 @@
                                                 <a href="<?= base_url($link . '/' . $item->id . '/edit'); ?>" class="btn btn-info btn-sm"><i class="fas fa-edit"></i></a>
                                             <?php endif; ?>
                                             <?php if ($can_delete): ?>
-                                                <form action="<?= base_url($link . '/' . $item->id); ?>" method="post" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                                                <form action="<?= base_url($link . '/' . $item->id); ?>" method="post" class="d-inline" >
                                                     <?= csrf_field(); ?>
                                                     <input type="hidden" name="_method" value="DELETE">
-                                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                                    <button type="button" data-ket="<?= temp_lang('auto_replies.delete_confirm'); ?>" onclick='confirmDelete(this)' class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
                                                 </form>
                                             <?php endif; ?>
                                         </td>

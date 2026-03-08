@@ -13,4 +13,6 @@ return [
     'reply_updated' => 'Balasan otomatis berhasil diperbarui',
     'reply_deleted' => 'Balasan otomatis berhasil dihapus',
     'reply_error' => 'Gagal memproses balasan otomatis',
+
+    'delete_confirm' => 'Balasan otomatis akan dihapus.',
 ];
