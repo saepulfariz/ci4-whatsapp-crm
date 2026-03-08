@@ -17,7 +17,11 @@ class CreateChatBotsTable extends Migration
                 'unsigned' => true,
                 'auto_increment' => true,
             ],
-            'client' => [
+            'from' => [
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+            ],
+            'name' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,
             ],

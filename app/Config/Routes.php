@@ -10,6 +10,8 @@ $routes->get('/', function () {
     return redirect()->to('/login');
 });
 
+$routes->post('api/webhook', 'ChatBots::webhook');
+
 $routes->get('lang/(:segment)', 'Language::switch/$1');
 
 $routes->get('/dashboard', 'Dashboard::index', ['filter' => 'session']);
