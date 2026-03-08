@@ -73,7 +73,7 @@ class SeedBroadcasts extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Broadcasts',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-bullhorn',
                     'route' => 'broadcasts',
                     'order' => 5,
                     'active' => 1,
@@ -85,7 +85,7 @@ class SeedBroadcasts extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Broadcasts',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-bullhorn',
                     'route' => 'broadcasts',
                     'order' => 5,
                     'active' => 1,

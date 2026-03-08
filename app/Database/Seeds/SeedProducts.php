@@ -73,7 +73,7 @@ class SeedProducts extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Products',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-box-open',
                     'route' => 'products',
                     'order' => 5,
                     'active' => 1,
@@ -85,7 +85,7 @@ class SeedProducts extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Products',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-box-open',
                     'route' => 'products',
                     'order' => 5,
                     'active' => 1,

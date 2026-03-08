@@ -53,4 +53,8 @@ $routes->get('share-broadcasts/reshare/(:num)', '\App\Controllers\ShareBroadcast
 $routes->get('share-broadcasts/get_variables/(:num)', '\App\Controllers\ShareBroadcasts::get_variables/$1', ['filter' => 'session']);
 $routes->resource('share-broadcasts', ['controller' => '\App\Controllers\ShareBroadcasts', 'filter' => 'session']);
 
+$routes->resource('auto-replies', ['controller' => '\App\Controllers\AutoReplies', 'filter' => 'session']);
+$routes->get('chat-bots', '\App\Controllers\ChatBots::index', ['filter' => 'session']);
+
+
 service('auth')->routes($routes);

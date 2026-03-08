@@ -73,7 +73,7 @@ class SeedCustomers extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Customers',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-address-book',
                     'route' => 'customers',
                     'order' => 5,
                     'active' => 1,
@@ -85,7 +85,7 @@ class SeedCustomers extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Customers',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-address-book',
                     'route' => 'customers',
                     'order' => 5,
                     'active' => 1,

@@ -73,7 +73,7 @@ class SeedTransactions extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Transactions',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-receipt',
                     'route' => 'transactions',
                     'order' => 5,
                     'active' => 1,
@@ -85,7 +85,7 @@ class SeedTransactions extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Transactions',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-receipt',
                     'route' => 'transactions',
                     'order' => 5,
                     'active' => 1,

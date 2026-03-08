@@ -61,7 +61,7 @@ class SeedShareBroadcasts extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Share Broadcasts',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-share-alt',
                     'route' => 'share-broadcasts',
                     'order' => 5,
                     'active' => 1,
@@ -73,7 +73,7 @@ class SeedShareBroadcasts extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Share Broadcasts',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-share-alt',
                     'route' => 'share-broadcasts',
                     'order' => 5,
                     'active' => 1,

@@ -21,5 +21,8 @@ class All extends Seeder
 
         $this->call('SeedBroadcasts');
         $this->call('SeedShareBroadcasts');
+
+        $this->call('SeedAutoReplies');
+        $this->call('SeedChatBots');
     }
 }

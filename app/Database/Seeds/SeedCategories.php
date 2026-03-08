@@ -73,7 +73,7 @@ class SeedCategories extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Categories',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-tags',
                     'route' => 'categories',
                     'order' => 5,
                     'active' => 1,
@@ -85,7 +85,7 @@ class SeedCategories extends Seeder
                 [
                     'parent_id' => NULL,
                     'title' => 'Categories',
-                    'icon' => 'fas fa-list',
+                    'icon' => 'fas fa-tags',
                     'route' => 'categories',
                     'order' => 5,
                     'active' => 1,
