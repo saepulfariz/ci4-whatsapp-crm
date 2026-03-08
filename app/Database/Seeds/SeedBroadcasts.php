@@ -100,14 +100,18 @@ class SeedBroadcasts extends Seeder
             [
                 'title' => 'Daily Stock Update',
                 'content' => '
-                Hi, Pak/Ibu {client_name},
-                Update stok product hari ini:
-                {stock_update}
+Hi, Pak/Ibu {client_name},
+Update stok product hari ini:
 
-                Pengantaran tesedia jam {delivery_time}
-                Silahkan balas jika ingin order!
-                Terima kasih,
-                {company_name}
+No | Nama | Stok | Harga
+{products}{no}. {name} - {stock} - {price}
+{/products}
+
+Pengantaran tesedia jam {delivery_time}
+Silahkan balas jika ingin order!
+
+Terima kasih,
+{company_name}
                 ',
             ],
         ];
@@ -121,7 +125,35 @@ class SeedBroadcasts extends Seeder
             ],
             [
                 'broadcast_id' => 1,
-                'name' => 'stock_update',
+                'name' => 'products',
+            ],
+            [
+                'broadcast_id' => 1,
+                'name' => 'no',
+            ],
+            [
+                'broadcast_id' => 1,
+                'name' => 'name',
+            ],
+            [
+                'broadcast_id' => 1,
+                'name' => 'qty',
+            ],
+            [
+                'broadcast_id' => 1,
+                'name' => 'hold_qty',
+            ],
+            [
+                'broadcast_id' => 1,
+                'name' => 'stock',
+            ],
+            [
+                'broadcast_id' => 1,
+                'name' => 'price',
+            ],
+            [
+                'broadcast_id' => 1,
+                'name' => 'description',
             ],
             [
                 'broadcast_id' => 1,

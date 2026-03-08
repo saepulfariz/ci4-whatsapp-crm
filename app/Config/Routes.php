@@ -5,7 +5,10 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Home::index');
+// redirect / to /login
+$routes->get('/', function () {
+    return redirect()->to('/login');
+});
 
 $routes->get('lang/(:segment)', 'Language::switch/$1');
 
@@ -45,5 +48,9 @@ $routes->resource('transactions', ['controller' => '\App\Controllers\Transaction
 
 $routes->resource('broadcasts', ['controller' => '\App\Controllers\Broadcasts', 'filter' => 'session']);
 $routes->resource('broadcast-variables', ['controller' => '\App\Controllers\BroadcastVariables', 'filter' => 'session']);
+
+$routes->get('share-broadcasts/reshare/(:num)', '\App\Controllers\ShareBroadcasts::reshare/$1', ['filter' => 'session']);
+$routes->get('share-broadcasts/get_variables/(:num)', '\App\Controllers\ShareBroadcasts::get_variables/$1', ['filter' => 'session']);
+$routes->resource('share-broadcasts', ['controller' => '\App\Controllers\ShareBroadcasts', 'filter' => 'session']);
 
 service('auth')->routes($routes);

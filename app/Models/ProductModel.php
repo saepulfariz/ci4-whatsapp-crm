@@ -59,4 +59,14 @@ class ProductModel extends Model
 
     // public $logName = false;
     public $logId = true;
+
+    public function getAllProductQty()
+    {
+        return $this->select('products.*, categories.name as category_name')
+            ->select('(SELECT COALESCE(SUM(td.qty), 0) FROM transaction_details td JOIN transactions t ON t.id = td.transaction_id WHERE td.product_id = products.id AND t.status NOT IN ("delivered", "cancelled") AND t.deleted_at IS NULL) as hold_qty')
+            ->select('(products.qty - (SELECT COALESCE(SUM(td.qty), 0) FROM transaction_details td JOIN transactions t ON t.id = td.transaction_id WHERE td.product_id = products.id AND t.status NOT IN ("delivered", "cancelled") AND t.deleted_at IS NULL)) as stock')
+            ->join('categories', 'categories.id = products.category_id')
+            ->orderBy('products.id', 'desc')
+            ->findAll();
+    }
 }

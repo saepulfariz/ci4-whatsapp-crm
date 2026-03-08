@@ -20,7 +20,7 @@ class BroadcastLogModel extends Model
         'broadcast_id',
         'customer_id',
         'content',
-        'phone',
+        'to',
         'status',
     ];
     protected $cacheKey = 'broadcast_logs';

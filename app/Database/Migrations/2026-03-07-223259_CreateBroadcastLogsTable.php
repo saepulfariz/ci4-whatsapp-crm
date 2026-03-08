@@ -31,7 +31,7 @@ class CreateBroadcastLogsTable extends Migration
             'content' => [
                 'type' => 'TEXT',
             ],
-            'phone' => [
+            'to' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,
             ],

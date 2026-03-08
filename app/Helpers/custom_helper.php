@@ -31,3 +31,47 @@ function temp_lang(string $line, array $args = [], ?string $locale = null)
 
     return $data;
 }
+
+
+function send_message($to, $text)
+{
+
+    $url = getenv('GOWA_URL') . '/send/message';
+    $username = getenv('GOWA_USERNAME');
+    $password = getenv('GOWA_PASSWORD');
+    $device = getenv('GOWA_DEVICE');
+
+    $data = [
+        "phone"   => $to,
+        "message" => $text
+    ];
+
+    $ch = curl_init($url);
+
+    if (ENVIRONMENT === 'development') {
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    }
+
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode($data),
+        CURLOPT_HTTPHEADER     => [
+            "Content-Type: application/json",
+            "X-Device-Id: " . $device
+        ],
+        CURLOPT_USERPWD        => "$username:$password",
+    ]);
+
+    $response = curl_exec($ch);
+    $error    = curl_error($ch);
+
+    curl_close($ch);
+
+    if ($error) {
+        return "cURL Error: " . $error;
+    } else {
+        return json_decode($response, true);
+    }
+}

@@ -22,4 +22,17 @@ return [
     'var_delete_error' => 'Failed to delete variable',
 
     'back_to_broadcasts' => 'Back to Broadcasts',
+
+    'share_broadcasts' => 'Share Broadcasts',
+    'recipient' => 'Recipient',
+    'custom_phone' => 'Custom Phone / Group ID',
+    'compose' => 'Compose Broadcast',
+    'preview' => 'Preview',
+    'send' => 'Send',
+    'reshare' => 'Reshare',
+    'status' => 'Status',
+    'select_template' => 'Select Template',
+    'select_customers' => 'Select Customers',
+
+    'created_at' => 'Created At',
 ];

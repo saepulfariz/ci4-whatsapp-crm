@@ -22,4 +22,17 @@ return [
     'var_delete_error' => 'Gagal menghapus variabel',
 
     'back_to_broadcasts' => 'Kembali ke Broadcasts',
+
+    'share_broadcasts' => 'Share Broadcasts',
+    'recipient' => 'Penerima',
+    'custom_phone' => 'Nomor HP Custom / ID Group',
+    'compose' => 'Tulis Pesan',
+    'preview' => 'Pratinjau',
+    'send' => 'Kirim',
+    'reshare' => 'Kirim Ulang',
+    'status' => 'Status',
+    'select_template' => 'Pilih Template',
+    'select_customers' => 'Pilih Customer',
+
+    'created_at' => 'Dibuat Pada',
 ];

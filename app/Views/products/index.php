@@ -49,6 +49,7 @@
                                     <th><?= temp_lang('products.price'); ?></th>
                                     <th><?= temp_lang('products.qty'); ?></th>
                                     <th>Hold</th>
+                                    <th>Stock</th>
                                     <th><?= temp_lang('products.image'); ?></th>
                                     <th><?= temp_lang('products.description'); ?></th>
                                     <th><?= temp_lang('products.active'); ?></th>
@@ -65,6 +66,7 @@
                                         <td><?= esc($product->price); ?></td>
                                         <td><?= esc($product->qty); ?></td>
                                         <td><?= esc($product->hold_qty ?? 0); ?></td>
+                                        <td><?= esc($product->stock ?? 0); ?></td>
                                         <td>
                                             <img width="100px" src="<?= asset_url(); ?>uploads/products/<?= esc($product->image); ?>" alt="" srcset="">
                                         </td>
