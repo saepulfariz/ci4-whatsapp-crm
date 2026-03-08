@@ -168,10 +168,16 @@ class ShareBroadcasts extends BaseController
             // Process Custom Phones
             foreach ($customPhones as $customPhone) {
                 if (!empty($customPhone)) {
-                    $finalContent = $contentBase;
-                    foreach ($variableValues as $varName => $value) {
-                        $finalContent = str_replace('{' . $varName . '}', $value, $finalContent);
-                    }
+                    $data_parser['client_name'] = '';
+                    $data_parser['client_phone'] = '';
+                    $data_parser['client_address'] = '';
+
+                    $contentResult = $parser->setData($data_parser)->renderString($contentBase, ['cascadeData' => true]);
+
+                    $finalContent = $contentResult;
+                    // foreach ($variableValues as $varName => $value) {
+                    //     $finalContent = str_replace('{' . $varName . '}', $value, $finalContent);
+                    // }
 
                     $this->model->insert([
                         'broadcast_id' => $templateId,
