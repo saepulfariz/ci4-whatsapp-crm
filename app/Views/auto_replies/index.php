@@ -27,7 +27,7 @@
                 $can_delete = auth()->user()->can('auto-replies.delete');
                 ?>
                 <?php if ($can_create): ?>
-                    <a href="<?= base_url($link . '/new'); ?>" class="btn btn-primary btn-sm mb-2"><?= temp_lang('app.add'); ?></a>
+                    <a href="<?= base_url($link . '/new'); ?>" class="btn btn-primary btn-sm mb-2"><?= temp_lang('app.new'); ?></a>
                 <?php endif; ?>
                 <div class="card">
                     <div class="card-body table-responsive">
