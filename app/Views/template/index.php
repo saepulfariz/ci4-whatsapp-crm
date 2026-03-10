@@ -1,42 +1,19 @@
 <?= $this->include('template/header'); ?>
 
-<body class="hold-transition sidebar-mini layout-fixed">
-  <div class="wrapper">
+<body>
+  <div class="app">
+    <div class="container">
 
-    <!-- Preloader -->
-    <!-- <div class="preloader flex-column justify-content-center align-items-center">
-      <img class="animation__shake" src="dist/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
-    </div> -->
+      <!-- Main Sidebar Container -->
+      <?= $this->include('template/sidebar'); ?>
 
-    <!-- Navbar -->
-    <?= $this->include('template/topbar'); ?>
-    <!-- /.navbar -->
-
-    <!-- Main Sidebar Container -->
-    <?= $this->include('template/sidebar'); ?>
-
-    <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper">
-
-
-      <?= $this->renderSection('content'); ?>
-    </div>
-    <!-- /.content-wrapper -->
-    <footer class="main-footer">
-      <strong>Copyright &copy; <?= copyright(2026); ?> <a href="#">Company</a>.</strong>
-      All rights reserved.
-      <div class="float-right d-none d-sm-inline-block">
-        <b>Version</b> 1.0.0
-      </div>
-    </footer>
-
-    <!-- Control Sidebar -->
-    <aside class="control-sidebar control-sidebar-dark">
-      <!-- Control sidebar content goes here -->
-    </aside>
-    <!-- /.control-sidebar -->
+      <main class="main-content">
+          <?= $this->include('template/topbar'); ?>
+          <div class="content-area">
+              <?= $this->renderSection('content'); ?>
+          </div>
+      </main>
   </div>
-  <!-- ./wrapper -->
 
 
   <?= $this->include('template/footer'); ?>

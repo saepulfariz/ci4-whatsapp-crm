@@ -5,43 +5,55 @@
 
 
 ?>
-<aside class="main-sidebar sidebar-dark-primary elevation-4">
-  <!-- Brand Logo -->
-  <a href="<?= base_url('dashboard'); ?>" class="brand-link">
-    <!-- change img to font fas fa-warehouse -->
-    <!-- <i class="nav-icon fas fa-warehouse img-circle elevation-3" style="margin-left: 1rem;margin-right: .5rem;max-height: 33px;width:auto;"></i> -->
-    <img src="<?= asset_url(); ?>assets/dist/img/AdminLTELogo.png" alt="Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-    <span class="brand-text font-weight-light"><?= APP_NAME; ?></span>
-  </a>
 
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <!-- Sidebar user panel (optional) -->
-    <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
-      <div class="image">
-        <img src="<?= asset_url(); ?>assets/dist/img/user.png" class="img-circle elevation-2" alt="User Image">
-      </div>
-      <div class="info" style="padding-bottom: 0px">
-        <a href="#" class="d-block text-capitalize"><?= getProfile()->name; ?></a>
-        <small class="text-white"><?= getProfile()->username; ?></small>
-      </div>
+<!-- Sidebar Navigation -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <h1 class="logo">ST</h1>
+        <p class="logo-text">Sweet Treats</p>
     </div>
-
-
-
-    <!-- Sidebar Menu -->
-    <nav class="mt-2">
-      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-        <!-- Add icons to the links using the .nav-icon class with font-awesome or any other icon font library -->
-
-        <?php if (isset($sidebarMenus) && is_array($sidebarMenus)): ?>
-          <?= view_cell('\App\Libraries\MenuCells::renderMenu', ['menus' => $sidebarMenus]) ?>
-        <?php endif; ?>
-
-
-      </ul>
+    <nav class="sidebar-nav">
+        <button class="nav-item active" data-page="dashboard">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-page="stock">
+            <span class="icon">📋</span>
+            <span>Stock</span>
+        </button>
+        <button class="nav-item" data-page="sales">
+            <span class="icon">💳</span>
+            <span>Sales</span>
+        </button>
+        <button class="nav-item" data-page="reports">
+            <span class="icon">📈</span>
+            <span>Reports</span>
+        </button>
+        <button class="nav-item submenu-toggle" data-submenu="masterdata">
+            <span class="icon">⚙️</span>
+            <span>Master Data</span>
+            <span class="submenu-arrow">▼</span>
+        </button>
+        <div class="submenu" id="masterdata-submenu">
+            <button class="nav-subitem" data-page="master-product">
+                <span>📦 Master Product</span>
+            </button>
+            <button class="nav-subitem" data-page="master-category">
+                <span>🏷️ Master Category</span>
+            </button>
+            <button class="nav-subitem" data-page="master-customer">
+                <span>👥 Customer / WhatsApp</span>
+            </button>
+        </div>
+        <button class="nav-item" data-page="broadcast">
+            <span class="icon">📱</span>
+            <span>WhatsApp Broadcast</span>
+        </button>
     </nav>
-    <!-- /.sidebar-menu -->
-  </div>
-  <!-- /.sidebar -->
+    <div class="sidebar-footer">
+        <p class="user-info">👤 Admin User</p>
+    </div>
 </aside>
+
+
+        
