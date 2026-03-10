@@ -81,8 +81,8 @@ let broadcastImageFile = null;
 // PAGE NAVIGATION
 // ========================================
 
-document.querySelectorAll('.nav-item').forEach(btn => {
-    if (btn.classList.contains('submenu-toggle')) {
+document.querySelectorAll('.st-nav-item').forEach(btn => {
+    if (btn.classList.contains('st-submenu-toggle')) {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             const submenuId = btn.dataset.submenu + '-submenu';
@@ -93,29 +93,30 @@ document.querySelectorAll('.nav-item').forEach(btn => {
     } else {
         btn.addEventListener('click', (e) => {
             const page = btn.dataset.page;
+            console.log(page);
             if (page) navigateToPage(page);
             
             // Update active state
-            document.querySelectorAll('.nav-item, .nav-subitem').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.st-nav-item, .st-nav-subitem').forEach(item => item.classList.remove('active'));
             btn.classList.add('active');
         });
     }
 });
 
-document.querySelectorAll('.nav-subitem').forEach(btn => {
+document.querySelectorAll('.st-nav-subitem').forEach(btn => {
     btn.addEventListener('click', (e) => {
         const page = btn.dataset.page;
         navigateToPage(page);
         
         // Update active state
-        document.querySelectorAll('.nav-item, .nav-subitem').forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('.st-nav-item, .st-nav-subitem').forEach(item => item.classList.remove('active'));
         btn.classList.add('active');
     });
 });
 
 function navigateToPage(pageName) {
     // Hide all pages
-    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    document.querySelectorAll('.st-page').forEach(page => page.classList.remove('active'));
     
     // Show selected page
     const page = document.getElementById(pageName);
@@ -133,7 +134,7 @@ function navigateToPage(pageName) {
             'sales': 'Sales',
             'reports': 'Reports'
         };
-        document.querySelector('.page-title').textContent = titles[pageName] || 'Dashboard';
+        document.querySelector('.st-page-title').textContent = titles[pageName] || 'Dashboard';
         
         // Load data based on page
         if (pageName === 'master-product') {
@@ -165,12 +166,12 @@ function loadProductsTable() {
     
     productsData.forEach((product, index) => {
         const statusBadge = product.status === 'Active' 
-            ? '<span class="badge active">Active</span>' 
-            : '<span class="badge inactive">Inactive</span>';
+            ? '<span class="st-badge active">Active</span>' 
+            : '<span class="st-badge inactive">Inactive</span>';
         
         const stockStatus = product.stock <= product.minStock 
-            ? '<span class="badge low">Low</span>' 
-            : '<span class="badge safe">Safe</span>';
+            ? '<span class="st-badge low">Low</span>' 
+            : '<span class="st-badge safe">Safe</span>';
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -184,7 +185,7 @@ function loadProductsTable() {
             <td>${product.minStock}</td>
             <td>${statusBadge}</td>
             <td>
-                <div class="action-btns">
+                <div class="st-action-btns">
                     <button class="btn-edit btn-small" onclick="editProduct(${product.id})">Edit</button>
                     <button class="btn-delete btn-small" onclick="deleteProduct(${product.id})">Delete</button>
                 </div>
@@ -311,8 +312,8 @@ function loadCategoriesTable() {
     
     categoriesData.forEach((category, index) => {
         const statusBadge = category.status === 'Active' 
-            ? '<span class="badge active">Active</span>' 
-            : '<span class="badge inactive">Inactive</span>';
+            ? '<span class="st-badge active">Active</span>' 
+            : '<span class="st-badge inactive">Inactive</span>';
         
         const totalProducts = productsData.filter(p => p.category === category.name).length;
         
@@ -325,7 +326,7 @@ function loadCategoriesTable() {
             <td>${statusBadge}</td>
             <td>${totalProducts}</td>
             <td>
-                <div class="action-btns">
+                <div class="st-action-btns">
                     <button class="btn-edit btn-small" onclick="editCategory(${category.id})">Edit</button>
                     <button class="btn-delete btn-small" onclick="deleteCategory(${category.id})">Delete</button>
                 </div>
@@ -436,8 +437,8 @@ function loadCustomersTable() {
     
     customersData.forEach((customer, index) => {
         const statusBadge = customer.status === 'Active' 
-            ? '<span class="badge active">Active</span>' 
-            : '<span class="badge inactive">Inactive</span>';
+            ? '<span class="st-badge active">Active</span>' 
+            : '<span class="st-badge inactive">Inactive</span>';
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -449,7 +450,7 @@ function loadCustomersTable() {
             <td>${customer.group}</td>
             <td>${statusBadge}</td>
             <td>
-                <div class="action-btns">
+                <div class="st-action-btns">
                     <button class="btn-edit btn-small" onclick="editCustomer(${customer.id})">Edit</button>
                     <button class="btn-delete btn-small" onclick="deleteCustomer(${customer.id})">Delete</button>
                 </div>
@@ -586,8 +587,8 @@ function loadGroupsTable() {
     
     groupsData.forEach((group, index) => {
         const statusBadge = group.status === 'Active' 
-            ? '<span class="badge active">Active</span>' 
-            : '<span class="badge inactive">Inactive</span>';
+            ? '<span class="st-badge active">Active</span>' 
+            : '<span class="st-badge inactive">Inactive</span>';
         
         const totalMembers = customersData.filter(c => c.group === group.name).length;
         
@@ -600,7 +601,7 @@ function loadGroupsTable() {
             <td>${totalMembers}</td>
             <td>${statusBadge}</td>
             <td>
-                <div class="action-btns">
+                <div class="st-action-btns">
                     <button class="btn-edit btn-small" onclick="editGroup(${group.id})">Edit</button>
                     <button class="btn-delete btn-small" onclick="deleteGroup(${group.id})">Delete</button>
                 </div>
@@ -712,10 +713,10 @@ function loadBroadcastPage() {
 }
 
 function setupBroadcastTabs() {
-    document.querySelectorAll('.recipient-tab').forEach(btn => {
+    document.querySelectorAll('.st-recipient-tab').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.recipient-tab').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.recipient-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.st-recipient-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.st-recipient-panel').forEach(p => p.classList.remove('active'));
             
             btn.classList.add('active');
             const recipientType = btn.dataset.recipient;
@@ -730,7 +731,7 @@ function loadBroadcastContactList() {
     
     customersData.forEach(customer => {
         const div = document.createElement('div');
-        div.className = 'contact-checkbox-item';
+        div.className = 'st-contact-checkbox-item';
         div.innerHTML = `
             <label>
                 <input type="checkbox" value="${customer.id}" onchange="updateSelectedContactsCount()">
@@ -744,7 +745,7 @@ function loadBroadcastContactList() {
     if (searchInput) {
         searchInput.addEventListener('keyup', () => {
             const searchTerm = searchInput.value.toLowerCase();
-            document.querySelectorAll('.contact-checkbox-item').forEach(item => {
+            document.querySelectorAll('.st-contact-checkbox-item').forEach(item => {
                 const text = item.textContent.toLowerCase();
                 item.style.display = text.includes(searchTerm) ? '' : 'none';
             });
@@ -799,7 +800,7 @@ function previewBroadcastImage(event) {
 function previewBroadcast() {
     const title = document.getElementById('broadcastTitle').value || 'Untitled Broadcast';
     const message = document.getElementById('broadcastMessage').value || 'No message';
-    const recipientTab = document.querySelector('.recipient-tab.active').dataset.recipient;
+    const recipientTab = document.querySelector('.st-recipient-tab.active').dataset.recipient;
     
     let recipientText = 'None selected';
     if (recipientTab === 'all') {
@@ -856,7 +857,7 @@ function sendBroadcast() {
         return;
     }
     
-    const recipientTab = document.querySelector('.recipient-tab.active').dataset.recipient;
+    const recipientTab = document.querySelector('.st-recipient-tab.active').dataset.recipient;
     let recipientType = 'Unknown';
     let recipientCount = 0;
     
@@ -918,8 +919,8 @@ function loadBroadcastHistory() {
     
     broadcastHistoryData.forEach((broadcast, index) => {
         const statusBadge = broadcast.status === 'Sent' 
-            ? '<span class="badge active">Sent</span>'
-            : '<span class="badge inactive">Draft</span>';
+            ? '<span class="st-badge active">Sent</span>'
+            : '<span class="st-badge inactive">Draft</span>';
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -1019,7 +1020,7 @@ function populateStockProductSelect() {
     });
 }
 
-// Populate product category dropdown in product modal
+// Populate product category dropdown in product st_modal
 function populateProductCategorySelect() {
     const select = document.getElementById('productCategory');
     select.innerHTML = '<option value="">Select Category</option>';
@@ -1221,7 +1222,7 @@ function loadSalesHistory() {
             <td>Rp ${trans.total.toLocaleString('id-ID')}</td>
             <td>${trans.method}</td>
             <td>${trans.cashier}</td>
-            <td><span class="badge active">${trans.status}</span></td>
+            <td><span class="st-badge active">${trans.status}</span></td>
             <td><button class="btn-view btn-small" onclick="viewTransaction(${trans.id})">View</button></td>
         `;
         tbody.appendChild(row);
@@ -1290,13 +1291,13 @@ function loadReportsData() {
 }
 
 function setupReportTabs() {
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.st-tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const tabName = btn.dataset.tab;
             
             // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.st-tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.st-tab-btn').forEach(b => b.classList.remove('active'));
             
             // Show selected tab
             const tab = document.getElementById(tabName);
@@ -1336,8 +1337,8 @@ function loadStockReport() {
     productsData.forEach((product, index) => {
         const stockStatus = product.stock <= product.minStock ? 'Low Stock' : 'Safe';
         const statusBadge = product.stock <= product.minStock 
-            ? '<span class="badge low">Low Stock</span>'
-            : '<span class="badge safe">Safe Stock</span>';
+            ? '<span class="st-badge low">Low Stock</span>'
+            : '<span class="st-badge safe">Safe Stock</span>';
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -1398,12 +1399,12 @@ function loadProfitReport() {
 // ========================================
 
 function showToast(message) {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.classList.add('show');
+    const st_toast = document.getElementById('st-toast');
+    st_toast.textContent = message;
+    st_toast.classList.add('show');
     
     setTimeout(() => {
-        toast.classList.remove('show');
+        st_toast.classList.remove('show');
     }, 3000);
 }
 
@@ -1423,12 +1424,12 @@ function printReport() {
 
 // Setup tab switching for customer page
 function setupTabSwitching() {
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.st-tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const tabName = btn.dataset.tab;
             
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.st-tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.st-tab-btn').forEach(b => b.classList.remove('active'));
             
             const tab = document.getElementById(tabName);
             if (tab) {

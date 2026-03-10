@@ -2,14 +2,14 @@
 
 <body>
   <div class="app">
-    <div class="container">
+    <div class="st-container">
 
       <!-- Main Sidebar Container -->
       <?= $this->include('template/sidebar'); ?>
 
-      <main class="main-content">
+      <main class="st-main-content">
           <?= $this->include('template/topbar'); ?>
-          <div class="content-area">
+          <div class="st-content-area">
               <?= $this->renderSection('content'); ?>
           </div>
       </main>
