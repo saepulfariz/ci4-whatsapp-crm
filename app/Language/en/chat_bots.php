@@ -2,7 +2,8 @@
 
 return [
     'title' => 'Chat Bots',
-    'client' => 'Client',
+    'from' => 'From',
+    'name' => 'Name',
     'question' => 'Question',
     'answer' => 'Answer',
     'timestamp' => 'Time',

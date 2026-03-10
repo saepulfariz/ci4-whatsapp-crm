@@ -34,8 +34,11 @@ GOWA_URL = "http://localhost:3000"
 GOWA_USERNAME = ""
 GOWA_PASSWORD = ""
 GOWA_DEVICE = ""
+GOWA_HMAC_SECRET = ""
 GOWA_PHONE = "@s.whatsapp.net"
 GOWA_GROUP = "@g.us"
+
+WEBHOOK_API_KEY='random'
 
 #--------------------------------------------------------------------
 # DATABASE

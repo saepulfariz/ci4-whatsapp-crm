@@ -27,7 +27,8 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th><?= temp_lang('chat_bots.client'); ?></th>
+                                    <th><?= temp_lang('chat_bots.from'); ?></th>
+                                    <th><?= temp_lang('chat_bots.name'); ?></th>
                                     <th><?= temp_lang('chat_bots.question'); ?></th>
                                     <th><?= temp_lang('chat_bots.answer'); ?></th>
                                     <th><?= temp_lang('chat_bots.timestamp'); ?></th>
@@ -38,7 +39,8 @@
                                 foreach ($data as $item): ?>
                                     <tr>
                                         <td><?= $a++; ?></td>
-                                        <td><?= esc($item->client); ?></td>
+                                        <td><?= esc($item->from); ?></td>
+                                        <td><?= esc($item->name); ?></td>
                                         <td><?= esc($item->question); ?></td>
                                         <td><?= esc($item->answer); ?></td>
                                         <td><?= esc($item->created_at); ?></td>

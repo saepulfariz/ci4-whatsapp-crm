@@ -2,7 +2,8 @@
 
 return [
     'title' => 'Chat Bot',
-    'client' => 'Klien',
+    'from' => 'Dari',
+    'name' => 'Nama',
     'question' => 'Pertanyaan',
     'answer' => 'Jawaban',
     'timestamp' => 'Waktu',
