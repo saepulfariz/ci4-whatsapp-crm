@@ -69,9 +69,10 @@ $can_profit = auth()->user()->can('reports.profit');
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($report_sales as $sales): ?>
+                    <?php $a = 1;
+                    foreach ($report_sales as $sales): ?>
                         <tr>
-                            <td><?= $sales->id ?></td>
+                            <td><?= $a++ ?></td>
                             <td><?= date('Y-m-d', strtotime($sales->created_at)) ?></td>
                             <td><?= $sales->transaction_code ?></td>
                             <td><?= $sales->product_name ?></td>
@@ -95,7 +96,8 @@ $can_profit = auth()->user()->can('reports.profit');
         <form action="<?= base_url($link); ?>" method="get">
             <div class="st-filters-bar">
                 <input type="hidden" name="tab" value="stock">
-                <input type="date" class="st-input-field" id="stockReportDateFilter">
+                <input type="date" class="st-input-field" name="start_date" value="<?= $requests['stock']['start_date'] ?>">
+                <input type="date" class="st-input-field" name="end_date" value="<?= $requests['stock']['end_date'] ?>">
                 <select class="st-input-field" id="stockReportCategoryFilter" name="category_id">
                     <option value="">All Categories</option>
                     <?php foreach ($categories as $category): ?>
@@ -125,9 +127,10 @@ $can_profit = auth()->user()->can('reports.profit');
                     </tr>
                 </thead>
                 <tbody id="stockReportBody">
-                    <?php foreach ($report_stock as $stock): ?>
+                    <?php $a = 1;
+                    foreach ($report_stock as $stock): ?>
                         <tr>
-                            <td><?= $stock->id ?></td>
+                            <td><?= $a++ ?></td>
                             <td><?= $stock->code ?></td>
                             <td><?= $stock->name ?></td>
                             <td><?= $stock->category_name ?></td>
@@ -144,18 +147,28 @@ $can_profit = auth()->user()->can('reports.profit');
 
 <!-- Profit Report Tab -->
 <?php if ($can_profit): ?>
-    <div id="profit-report" class="st-tab-content" <?= ($requests['tab'] == 'profit') ? 'active' : ''; ?>>
-        <div class="st-filters-bar">
-            <input type="month" class="st-input-field">
-            <select class="st-input-field">
-                <option value="">All Products</option>
-            </select>
-            <button class="st-btn st-btn-secondary" onclick="exportCSV()">📥 Export CSV</button>
-            <button class="st-btn st-btn-secondary" onclick="printReport()">🖨️ Print</button>
-        </div>
+    <div id="profit-report" class="st-tab-content  <?= ($requests['tab'] == 'profit') ? 'active' : ''; ?> ">
+        <form action="<?= base_url($link); ?>" method="get">
+            <div class="st-filters-bar">
+                <input type="hidden" name="tab" value="profit">
+                <input type="date" class="st-input-field" name="start_date" value="<?= $requests['profit']['start_date'] ?>">
+                <input type="date" class="st-input-field" name="end_date" value="<?= $requests['profit']['end_date'] ?>">
+                <select class="st-input-field" name="product_id">
+                    <option value="">All Products</option>
+                    <?php foreach ($products as $product): ?>
+                        <?php if ($requests['profit']['product_id'] == $product->id): ?>
+                            <option value="<?= $product->id ?>" selected><?= $product->name ?></option>
+                        <?php else: ?>
+                            <option value="<?= $product->id ?>"><?= $product->name ?></option>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </select>
+                <button type="submit" class="st-btn st-btn-secondary">Submit</button>
+            </div>
+        </form>
 
-        <div class="st-section-box">
-            <table class="st-data-table">
+        <div class="st-section-box table-repsonsive">
+            <table class="st-data-table w-100" id="profitReportTable">
                 <thead>
                     <tr>
                         <th>No</th>
@@ -168,33 +181,20 @@ $can_profit = auth()->user()->can('reports.profit');
                     </tr>
                 </thead>
                 <tbody id="profitReportBody">
-                    <tr>
-                        <td>1</td>
-                        <td>Sugar Donut</td>
-                        <td>2</td>
-                        <td>Rp 50.000</td>
-                        <td>Rp 20.000</td>
-                        <td>Rp 30.000</td>
-                        <td>60.0%</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Iced Tea</td>
-                        <td>1</td>
-                        <td>Rp 18.000</td>
-                        <td>Rp 6.000</td>
-                        <td>Rp 12.000</td>
-                        <td>66.7%</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Coffee Milk</td>
-                        <td>2</td>
-                        <td>Rp 44.000</td>
-                        <td>Rp 16.000</td>
-                        <td>Rp 28.000</td>
-                        <td>63.6%</td>
-                    </tr>
+                    <?php $a = 1;
+                    foreach ($report_profit as $profit): ?>
+                        <tr>
+                            <td><?= $a++ ?></td>
+                            <td><?= $profit->name ?></td>
+                            <td><?= $profit->count_transaction ?></td>
+                            <td>Rp. <?= number_format($profit->price * $profit->count_transaction, 0, ',', '.') ?></td>
+                            <td>Rp. <?= number_format($profit->cogs * $profit->count_transaction, 0, ',', '.') ?></td>
+                            <td>Rp. <?= number_format(($profit->price - $profit->cogs) * $profit->count_transaction, 0, ',', '.') ?></td>
+
+                            <!-- Profit Margin = (Total Sales Revenue - Total COGS) / Total Sales Revenue ×100% -->
+                            <td><?= number_format((($profit->price - $profit->cogs) * $profit->count_transaction) / ($profit->price * $profit->count_transaction) * 100, 2, ',', '.') ?>%</td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
@@ -207,5 +207,6 @@ $can_profit = auth()->user()->can('reports.profit');
 <script>
     setDataTables('#salesReportTable');
     setDataTables('#stockReportTable');
+    setDataTables('#profitReportTable');
 </script>
 <?= $this->endSection() ?>

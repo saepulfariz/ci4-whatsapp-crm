@@ -40,6 +40,7 @@ class Reports extends BaseController
         }
 
         $category_id = $this->request->getVar('category_id') ?? null;
+        $product_id = $this->request->getVar('product_id') ?? null;
         $start_date = $this->request->getVar('start_date') ?? null;
         $end_date = $this->request->getVar('end_date') ?? null;
         $report_type = $this->request->getVar('report_type') ?? null;
@@ -55,8 +56,14 @@ class Reports extends BaseController
 
         $report_stock  = $this->model_product->getAllProductQty();
 
+        $report_profit = $this->model_product->getAllProductProfitTransaction();
+
         $sales_category_id = null;
         $stock_category_id = null;
+        $profit_category_id = null;
+        $profit_product_id = null;
+        $stock_start_date = null;
+        $stock_end_date = null;
         if ($tab == 'sales') {
             if ($category_id) {
                 $report_sales = $report_sales->where('products.category_id', $category_id);
@@ -67,6 +74,19 @@ class Reports extends BaseController
                 $report_stock  = $this->model_product->getAllProductQty($category_id);
             }
             $stock_category_id = $category_id;
+            $stock_start_date = $start_date;
+            $stock_end_date = $end_date;
+        }
+
+        $profit_start_date = null;
+        $profit_end_date = null;
+        if ($tab == 'profit') {
+            $profit_category_id = $category_id;
+            $profit_product_id = $product_id;
+
+            $report_profit = $this->model_product->getAllProductProfitTransaction($product_id, $category_id, $start_date, $end_date);
+            $profit_start_date = $start_date;
+            $profit_end_date = $end_date;
         }
 
         $sales_start_date = null;
@@ -92,11 +112,21 @@ class Reports extends BaseController
                 ],
                 'stock' => [
                     'category_id' => $stock_category_id,
+                    'start_date' => $stock_start_date,
+                    'end_date' => $stock_end_date,
+                ],
+                'profit' => [
+                    'category_id' => $profit_category_id,
+                    'product_id' => $profit_product_id,
+                    'start_date' => $profit_start_date,
+                    'end_date' => $profit_end_date,
                 ],
             ],
             'report_sales' => $report_sales->findAll(),
             'report_stock' => $report_stock,
             'categories' => $this->model_category->findAll(),
+            'products' => $this->model_product->findAll(),
+            'report_profit' => $report_profit,
         ];
 
         return view($this->view . '/index', $data);

@@ -121,4 +121,58 @@ class ProductModel extends Model
 
         return $products;
     }
+
+    public function getAllProductProfit($product_id = null, $category_id = null)
+    {
+        $data = $this->select('products.*, categories.name as category_name')
+
+            ->select('(SELECT COALESCE(SUM(td.qty),0)
+                FROM transaction_details td
+                JOIN transactions t ON t.id = td.transaction_id
+                WHERE td.product_id = products.id
+                AND t.deleted_at IS NULL
+                AND t.status != "cancelled") as count_transaction')
+            ->join('categories', 'categories.id = products.category_id')
+            ->orderBy('products.id', 'desc');
+
+        if ($product_id) {
+            $data->where('products.id', $product_id);
+        }
+
+        if ($category_id) {
+            $data->where('products.category_id', $category_id);
+        }
+
+        return $data->findAll();
+    }
+
+    public function getAllProductProfitTransaction($product_id = null, $category_id = null, $start_date = null, $end_date = null)
+    {
+        // products by transaction_details
+        $data = db_connect()->table('transaction_details td')
+            ->select('sum(td.qty) as count_transaction, p.name as name, p.cogs as cogs, p.price as price, c.name as category_name')
+            ->join('products p', 'p.id = td.product_id')
+            ->join('categories c', 'c.id = p.category_id')
+            ->join('transactions t', 't.id = td.transaction_id')
+            ->groupBy('td.product_id')
+            ->groupBy('p.category_id')
+            ->groupBy('p.cogs')
+            ->groupBy('p.price')
+            ->where('t.deleted_at IS NULL')
+            ->where('t.status != "cancelled"');
+
+        if ($start_date && $end_date) {
+            $data->where('t.created_at >=', $start_date)->where('t.created_at <=', $end_date);
+        }
+
+        if ($product_id) {
+            $data->where('td.product_id', $product_id);
+        }
+
+        if ($category_id) {
+            $data->where('p.category_id', $category_id);
+        }
+
+        return $data->get()->getResult();
+    }
 }
