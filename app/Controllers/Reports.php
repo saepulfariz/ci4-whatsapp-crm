@@ -48,10 +48,10 @@ class Reports extends BaseController
 
         $report_sales = $this->model_transaction_detail
             ->select('transaction_details.*, transaction_details.subtotal as total_price, transactions.code as transaction_code, products.name as product_name, products.price as product_price, products.cogs as product_cogs, categories.name as category_name')
-            ->select('(transaction_details.subtotal - (products.cogs * transaction_details.qty)  ) as gross_profit')
+            ->select('(transaction_details.subtotal - (transaction_details.cogs * transaction_details.qty)  ) as gross_profit')
             ->join('transactions', 'transactions.id = transaction_details.transaction_id')
             ->join('products', 'products.id = transaction_details.product_id')
-            ->join('categories', 'categories.id = products.category_id');
+            ->join('categories', 'categories.id = products.category_id')->orderBy('transaction_details.created_at', 'DESC');
 
         if ($category_id) {
             $report_sales = $report_sales->where('products.category_id', $category_id);

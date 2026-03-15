@@ -35,6 +35,10 @@ class CreateTransactionDetailsTable extends Migration
                 'type'       => 'FLOAT',
                 'default' => 0
             ],
+            'cogs' => [
+                'type'       => 'FLOAT',
+                'default' => 0
+            ],
             'subtotal' => [
                 'type'       => 'FLOAT',
                 'default' => 0

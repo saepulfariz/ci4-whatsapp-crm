@@ -52,8 +52,8 @@ $can_profit = auth()->user()->can('reports.profit');
             </div>
         </form>
 
-        <div class="st-section-box">
-            <table class="st-data-table" id="salesReportTable">
+        <div class="st-section-box table-responsive">
+            <table class="st-data-table w-100" id="salesReportTable">
                 <thead>
                     <tr>
                         <th>No</th>
@@ -68,7 +68,7 @@ $can_profit = auth()->user()->can('reports.profit');
                         <th>Gross Profit</th>
                     </tr>
                 </thead>
-                <tbody id="salesReportBody">
+                <tbody>
                     <?php foreach ($report_sales as $sales): ?>
                         <tr>
                             <td><?= $sales->id ?></td>
@@ -78,7 +78,7 @@ $can_profit = auth()->user()->can('reports.profit');
                             <td><?= $sales->category_name ?></td>
                             <td><?= $sales->qty ?></td>
                             <td>Rp. <?= number_format($sales->price, 0, ',', '.') ?></td>
-                            <td>Rp. <?= number_format($sales->product_cogs, 0, ',', '.') ?></td>
+                            <td>Rp. <?= number_format($sales->cogs, 0, ',', '.') ?></td>
                             <td>Rp. <?= number_format($sales->total_price, 0, ',', '.') ?></td>
                             <td>Rp. <?= number_format($sales->gross_profit, 0, ',', '.') ?></td>
                         </tr>

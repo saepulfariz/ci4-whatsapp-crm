@@ -21,6 +21,7 @@ class TransactionDetailModel extends Model
         'product_id',
         'qty',
         'price',
+        'cogs',
         'subtotal',
         'discount_amount',
         'total_price',

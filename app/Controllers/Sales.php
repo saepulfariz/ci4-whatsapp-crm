@@ -166,10 +166,14 @@ class Sales extends BaseController
                 $productId = $products[$i];
                 $qty = $qtys[$i];
                 $price = isset($prices[$i]) ? $prices[$i] : 0;
+                $cogs = 0;
 
-                if ($price == 0) {
+                if ($price == 0 || $cogs == 0) {
                     $product = $this->productModel->find($productId);
-                    if ($product) $price = $product->price;
+                    if ($product) {
+                        $price = $product->price;
+                        $cogs = $product->cogs;
+                    }
                 }
 
                 $subtotal = $qty * $price;
@@ -179,6 +183,7 @@ class Sales extends BaseController
                     'product_id' => $productId,
                     'qty' => $qty,
                     'price' => $price,
+                    'cogs' => $cogs,
                     'subtotal' => $subtotal,
                     'discount_amount' => 0,
                     'total_price' => $subtotal
@@ -255,8 +260,8 @@ class Sales extends BaseController
             if (!empty($detailsData)) {
                 $this->detailModel->insertBatch($detailsData);
 
-                // Permanent Stock Deduction if status is delivered
-                if (($this->request->getVar('status') ?? 'pending') === 'delivered') {
+                // Permanent Stock Deduction if status is completed
+                if (($this->request->getVar('status') ?? 'pending') === 'completed') {
                     foreach ($detailsData as $nd) {
                         $p = $this->productModel->find($nd['product_id']);
                         if ($p) {

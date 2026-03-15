@@ -145,6 +145,10 @@
         extend: 'excel',
         className: "btn bg-tranparent btn-sm btn-success",
         footer: true
+      }, {
+        extend: 'print',
+        className: "btn bg-tranparent btn-sm btn-success",
+        footer: true
       }, ],
       "pageLength": 5,
       "lengthMenu": [
