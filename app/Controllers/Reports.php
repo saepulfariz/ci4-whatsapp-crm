@@ -53,12 +53,30 @@ class Reports extends BaseController
             ->join('products', 'products.id = transaction_details.product_id')
             ->join('categories', 'categories.id = products.category_id')->orderBy('transaction_details.created_at', 'DESC');
 
-        if ($category_id) {
-            $report_sales = $report_sales->where('products.category_id', $category_id);
+        $report_stock  = $this->model_product->getAllProductQty();
+
+        $sales_category_id = null;
+        $stock_category_id = null;
+        if ($tab == 'sales') {
+            if ($category_id) {
+                $report_sales = $report_sales->where('products.category_id', $category_id);
+            }
+            $sales_category_id = $category_id;
+        } else if ($tab == 'stock') {
+            if ($category_id) {
+                $report_stock  = $this->model_product->getAllProductQty($category_id);
+            }
+            $stock_category_id = $category_id;
         }
 
-        if ($start_date && $end_date) {
-            $report_sales = $report_sales->where('transactions.created_at >=', $start_date)->where('transactions.created_at <=', $end_date);
+        $sales_start_date = null;
+        $sales_end_date = null;
+        if ($tab == 'sales') {
+            if ($start_date && $end_date) {
+                $report_sales = $report_sales->where('transactions.created_at >=', $start_date)->where('transactions.created_at <=', $end_date);
+            }
+            $sales_start_date = $start_date;
+            $sales_end_date = $end_date;
         }
 
         $data = [
@@ -66,12 +84,18 @@ class Reports extends BaseController
             'link' => $this->link,
             'requests' => [
                 'tab' => $tab,
-                'report_type' => $report_type,
-                'start_date' => $start_date,
-                'end_date' => $end_date,
-                'category_id' => $category_id,
+                'sales' => [
+                    'report_type' => $report_type,
+                    'start_date' => $sales_start_date,
+                    'end_date' => $sales_end_date,
+                    'category_id' => $sales_category_id,
+                ],
+                'stock' => [
+                    'category_id' => $stock_category_id,
+                ],
             ],
             'report_sales' => $report_sales->findAll(),
+            'report_stock' => $report_stock,
             'categories' => $this->model_category->findAll(),
         ];
 

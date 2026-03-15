@@ -35,12 +35,12 @@ $can_profit = auth()->user()->can('reports.profit');
                     <option value="weekly">Weekly Report</option>
                     <option value="monthly">Monthly Report</option>
                 </select>
-                <input type="date" class="st-input-field" id="reportDateFilter" name="start_date" placeholder="Start Date" value="<?= $requests['start_date'] ?>">
-                <input type="date" class="st-input-field" id="reportDateFilter" name="end_date" placeholder="End Date" value="<?= $requests['end_date'] ?>">
+                <input type="date" class="st-input-field" id="reportDateFilter" name="start_date" placeholder="Start Date" value="<?= $requests['sales']['start_date'] ?>">
+                <input type="date" class="st-input-field" id="reportDateFilter" name="end_date" placeholder="End Date" value="<?= $requests['sales']['end_date'] ?>">
                 <select class="st-input-field" id="reportCategoryFilter" name="category_id">
                     <option value="">All Categories</option>
                     <?php foreach ($categories as $category): ?>
-                        <?php if ($requests['category_id'] == $category->id): ?>
+                        <?php if ($requests['sales']['category_id'] == $category->id): ?>
                             <option value="<?= $category->id ?>" selected><?= $category->name ?></option>
                         <?php else: ?>
                             <option value="<?= $category->id ?>"><?= $category->name ?></option>
@@ -92,20 +92,27 @@ $can_profit = auth()->user()->can('reports.profit');
 <!-- Stock Report Tab -->
 <?php if ($can_stock): ?>
     <div id="stock-report" class="st-tab-content <?= ($requests['tab'] == 'stock') ? 'active' : ''; ?>">
-        <div class="st-filters-bar">
-            <input type="date" class="st-input-field" id="stockReportDateFilter">
-            <select class="st-input-field" id="stockReportCategoryFilter">
-                <option value="">All Categories</option>
-                <option value="Donut">Donut</option>
-                <option value="Beverage">Beverage</option>
-                <option value="Pastry">Pastry</option>
-            </select>
-            <button class="st-btn st-btn-secondary" onclick="exportCSV()">📥 Export CSV</button>
-            <button class="st-btn st-btn-secondary" onclick="printReport()">🖨️ Print</button>
-        </div>
+        <form action="<?= base_url($link); ?>" method="get">
+            <div class="st-filters-bar">
+                <input type="hidden" name="tab" value="stock">
+                <input type="date" class="st-input-field" id="stockReportDateFilter">
+                <select class="st-input-field" id="stockReportCategoryFilter" name="category_id">
+                    <option value="">All Categories</option>
+                    <?php foreach ($categories as $category): ?>
+                        <?php if ($requests['stock']['category_id'] == $category->id): ?>
+                            <option value="<?= $category->id ?>" selected><?= $category->name ?></option>
+                        <?php else: ?>
+                            <option value="<?= $category->id ?>"><?= $category->name ?></option>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </select>
 
-        <div class="st-section-box">
-            <table class="st-data-table">
+                <button type="submit" class="st-btn st-btn-secondary">Submit</button>
+            </div>
+        </form>
+
+        <div class="st-section-box table-responsive">
+            <table class="st-data-table w-100" id="stockReportTable">
                 <thead>
                     <tr>
                         <th>No</th>
@@ -118,69 +125,17 @@ $can_profit = auth()->user()->can('reports.profit');
                     </tr>
                 </thead>
                 <tbody id="stockReportBody">
-                    <tr>
-                        <td>1</td>
-                        <td>DT-001</td>
-                        <td>Sugar Donut</td>
-                        <td>Regular Donuts</td>
-                        <td>25</td>
-                        <td>10</td>
-                        <td><span class="st-badge safe">Safe Stock</span></td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>DT-002</td>
-                        <td>Chocolate Donut</td>
-                        <td>Regular Donuts</td>
-                        <td>18</td>
-                        <td>10</td>
-                        <td><span class="st-badge safe">Safe Stock</span></td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>DT-003</td>
-                        <td>Cheese Donut</td>
-                        <td>Regular Donuts</td>
-                        <td>5</td>
-                        <td>10</td>
-                        <td><span class="st-badge low">Low Stock</span></td>
-                    </tr>
-                    <tr>
-                        <td>4</td>
-                        <td>BOM-001</td>
-                        <td>Chocolate Bomboloni</td>
-                        <td>Bomboloni</td>
-                        <td>12</td>
-                        <td>8</td>
-                        <td><span class="st-badge safe">Safe Stock</span></td>
-                    </tr>
-                    <tr>
-                        <td>5</td>
-                        <td>BEV-001</td>
-                        <td>Iced Tea</td>
-                        <td>Cold Drinks</td>
-                        <td>8</td>
-                        <td>15</td>
-                        <td><span class="st-badge low">Low Stock</span></td>
-                    </tr>
-                    <tr>
-                        <td>6</td>
-                        <td>BEV-002</td>
-                        <td>Coffee Milk</td>
-                        <td>Coffee Drinks</td>
-                        <td>15</td>
-                        <td>12</td>
-                        <td><span class="st-badge safe">Safe Stock</span></td>
-                    </tr>
-                    <tr>
-                        <td>7</td>
-                        <td>BEV-003</td>
-                        <td>Thai Tea</td>
-                        <td>Cold Drinks</td>
-                        <td>3</td>
-                        <td>10</td>
-                        <td><span class="st-badge low">Low Stock</span></td>
-                    </tr>
+                    <?php foreach ($report_stock as $stock): ?>
+                        <tr>
+                            <td><?= $stock->id ?></td>
+                            <td><?= $stock->code ?></td>
+                            <td><?= $stock->name ?></td>
+                            <td><?= $stock->category_name ?></td>
+                            <td><?= $stock->stock ?></td>
+                            <td><?= $stock->min_qty ?></td>
+                            <td><span class="st-badge <?= $stock->qty <= $stock->min_stock ? 'low' : 'safe' ?>"><?= $stock->qty <= $stock->min_stock ? 'Low Stock' : 'Safe Stock' ?></span></td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
@@ -251,5 +206,6 @@ $can_profit = auth()->user()->can('reports.profit');
 <?= $this->section('script') ?>
 <script>
     setDataTables('#salesReportTable');
+    setDataTables('#stockReportTable');
 </script>
 <?= $this->endSection() ?>
