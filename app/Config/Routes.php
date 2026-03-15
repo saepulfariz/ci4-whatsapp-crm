@@ -64,5 +64,7 @@ $routes->resource('stocks', ['controller' => '\App\Controllers\Stocks', 'filter'
 $routes->post('sales', '\App\Controllers\Sales::create', ['filter' => 'session']);
 $routes->get('sales', '\App\Controllers\Sales::new', ['filter' => 'session']);
 
+$routes->get('reports', '\App\Controllers\Reports::index', ['filter' => 'session']);
+
 
 service('auth')->routes($routes);
