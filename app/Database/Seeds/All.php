@@ -14,7 +14,9 @@ class All extends Seeder
 
         $this->call('SeedCategories');
         $this->call('SeedProducts');
+        $this->call('SeedStocks');
         $this->call('SeedCustomers');
+        $this->call('SeedSales');
         $this->call('SeedTransactions');
 
         $this->call('SeedPaymentMethods');

@@ -4,11 +4,11 @@
 <div class="st-sales-container">
     <form action="<?= base_url($link); ?>" method="post" enctype="multipart/form-data" id="transactionForm">
         <?= csrf_field(); ?>
-        
+
         <div class="row">
             <!-- POS Panel (Left) -->
             <div class="col-12 col-xl-8">
-                <div class="st-pos-panel">
+                <div class="st-pos-panel mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 class="m-0">Point of Sale</h3>
                         <div class="st-badge active"><?= temp_lang('app.new'); ?> <?= esc($title); ?></div>
@@ -55,7 +55,7 @@
                     <!-- Customer Info Section -->
                     <div class="st-section-box mt-4">
                         <h3><?= temp_lang('transactions.customer_info'); ?></h3>
-                        
+
                         <div class="st-form-row">
                             <div class="st-form-group">
                                 <label for="order_date"><?= temp_lang('transactions.order_date'); ?> <small class="text-danger">*</small></label>
@@ -63,7 +63,7 @@
                             </div>
                             <div class="st-form-group">
                                 <label for="schedule_date"><?= temp_lang('transactions.schedule_date'); ?></label>
-                                <input type="date" class="st-input-field" id="schedule_date" name="schedule_date" value="<?= old('schedule_date'); ?>">
+                                <input type="date" class="st-input-field" id="schedule_date" name="schedule_date" value="<?= old('schedule_date', date('Y-m-d')); ?>">
                             </div>
                         </div>
 
@@ -114,12 +114,8 @@
                                 </div>
                                 <div class="st-form-group">
                                     <label for="category">Category <small class="text-danger">*</small></label>
-                                    <select class="st-input-field" id="category" name="category">
-                                        <option value="">- Select Category -</option>
-                                        <?php foreach ($categories as $cat): ?>
-                                            <option value="<?= esc($cat->name); ?>"><?= esc($cat->name); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <!-- category input text not select -->
+                                    <input type="text" class="st-input-field" id="category" name="category">
                                 </div>
                             </div>
 
@@ -130,19 +126,70 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- list transactions history nya, hide in mobile -->
+                <div class="st-pos-panel d-none d-md-block">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="m-0">Recent Transactions</h3>
+                    </div>
+                    <div class="st-section-box table-responsive">
+                        <table class="st-data-table w-100" id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th width="5%">No</th>
+                                    <th>Date</th>
+                                    <th>Transaction No</th>
+                                    <th>Total Items</th>
+                                    <th>Total Payment</th>
+                                    <th>Payment Method</th>
+                                    <th>Cashier</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($history)): ?>
+                                    <?php foreach ($history as $index => $row): ?>
+                                        <tr>
+                                            <td><?= $index + 1; ?></td>
+                                            <td><?= date('d/m/Y H:i:s', strtotime($row->created_at)); ?></td>
+                                            <td><strong><?= esc($row->code); ?></strong></td>
+                                            <td><?= number_format($row->total_items, 0); ?> items</td>
+                                            <td>Rp <?= number_format($row->total_amount, 0, ',', '.'); ?></td>
+                                            <td><?= esc($row->payment_method_name ?? '-'); ?></td>
+                                            <td><?= esc($row->cashier_name ?? 'System'); ?></td>
+                                            <td>
+                                                <?php
+                                                $statusClass = 'pending';
+                                                if ($row->status === 'delivered' || $row->status === 'completed' || $row->status === 'paid') $statusClass = 'active';
+                                                if ($row->status === 'cancelled') $statusClass = 'inactive';
+                                                ?>
+                                                <div class="st-badge <?= $statusClass; ?>"><?= ucfirst(str_replace('_', ' ', $row->status)); ?></div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="8" class="text-center py-4">No recent transactions found.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Payment Summary (Right) -->
             <div class="col-12 col-xl-4">
-                <div class="st-pos-panel sticky-top" style="top: 20px;">
+                <div class="st-pos-panel st-sticky-top" style="top: 20px;">
                     <h3>Summary</h3>
-                    
+
                     <div class="st-payment-summary">
                         <div class="st-summary-row border-bottom-0 pb-1">
                             <span>Subtotal:</span>
                             <span id="subtotalDisplay">Rp 0</span>
                         </div>
-                        
+
                         <div class="st-summary-row border-bottom-0 pb-1">
                             <span><?= temp_lang('transactions.discount_total'); ?>:</span>
                             <input type="number" step="0.01" class="st-input-field small" id="discount_total" name="discount_total" value="<?= old('discount_total', 0); ?>" onchange="calculateGrandTotal()">
@@ -160,21 +207,21 @@
                         </div>
 
                         <hr>
-                        
+
                         <div class="mt-4">
                             <h5 class="mb-3">Payment Information</h5>
-                            <div class="st-form-group">
+                            <div class="form-group">
                                 <label for="payment_method_id"><?= temp_lang('transactions.method'); ?></label>
-                                <select class="st-input-field" id="payment_method_id" name="payment_method_id">
+                                <select class="form-control" id="payment_method_id" name="payment_method_id">
                                     <?php foreach ($paymentMethods as $pm): ?>
                                         <option value="<?= $pm->id; ?>"><?= esc($pm->name); ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
 
-                            <div class="st-form-group">
+                            <div class="form-group">
                                 <label for="payment_amount"><?= temp_lang('transactions.amount'); ?></label>
-                                <input type="number" step="0.01" class="st-input-field" id="payment_amount" name="payment_amount" value="<?= old('payment_amount', 0); ?>" onchange="updateChange()" onkeyup="updateChange()">
+                                <input type="number" step="0.01" class="form-control" id="payment_amount" name="payment_amount" value="<?= old('payment_amount', 0); ?>" onchange="updateChange()" onkeyup="updateChange()">
                             </div>
 
                             <div class="st-summary-row border-0 py-1">
@@ -187,42 +234,42 @@
                                 <span id="changeDisplay" class="font-weight-bold">Rp 0</span>
                             </div>
 
-                            <div class="st-form-group mt-3">
+                            <div class="form-group mt-3">
                                 <label for="payment_proof"><?= temp_lang('transactions.proof'); ?></label>
-                                <input type="file" class="st-input-field" id="payment_proof" name="payment_proof" accept=".jpg,.jpeg,.png,.pdf">
+                                <input type="file" class="form-control" id="payment_proof" name="payment_proof" accept=".jpg,.jpeg,.png,.pdf">
                             </div>
 
-                            <div class="st-form-group">
+                            <div class="form-group">
                                 <label for="payment_reference"><?= temp_lang('transactions.reference'); ?></label>
-                                <input type="text" class="st-input-field" id="payment_reference" name="payment_reference" placeholder="Reference No.">
+                                <input type="text" class="form-control" id="payment_reference" name="payment_reference" placeholder="Reference No.">
                             </div>
                         </div>
 
                         <hr>
 
-                        <div class="st-form-group">
+                        <div class="form-group">
                             <label for="status"><?= temp_lang('transactions.status'); ?></label>
-                            <select class="st-input-field" id="status" name="status">
-                                <?php $statuses = ['pending', 'waiting_payment', 'paid', 'processing', 'delivered', 'cancelled']; ?>
+                            <select class="form-control" id="status" name="status">
+                                <?php $statuses = ['pending', 'waiting_payment', 'paid', 'processing', 'delivered', 'completed', 'cancelled']; ?>
                                 <?php foreach ($statuses as $st): ?>
-                                    <option value="<?= $st; ?>" <?= old('status', 'pending') == $st ? 'selected' : ''; ?>><?= ucfirst(str_replace('_', ' ', $st)); ?></option>
+                                    <option value="<?= $st; ?>" <?= old('status', 'completed') == $st ? 'selected' : ''; ?>><?= ucfirst(str_replace('_', ' ', $st)); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
 
-                        <div class="st-form-group">
+                        <div class="form-group">
                             <label for="payment_status"><?= temp_lang('transactions.payment_status'); ?></label>
-                            <select class="st-input-field" id="payment_status" name="payment_status">
+                            <select class="form-control" id="payment_status" name="payment_status">
                                 <?php $pStatuses = ['unpaid', 'partial', 'paid', 'refunded']; ?>
                                 <?php foreach ($pStatuses as $pst): ?>
-                                    <option value="<?= $pst; ?>" <?= old('payment_status', 'unpaid') == $pst ? 'selected' : ''; ?>><?= ucfirst($pst); ?></option>
+                                    <option value="<?= $pst; ?>" <?= old('payment_status', 'paid') == $pst ? 'selected' : ''; ?>><?= ucfirst($pst); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
 
-                        <div class="st-form-group">
+                        <div class="form-group">
                             <label for="note"><?= temp_lang('transactions.note'); ?></label>
-                            <textarea class="st-input-field" id="note" name="note" rows="2"><?= old('note'); ?></textarea>
+                            <textarea class="form-control" id="note" name="note" rows="2"><?= old('note'); ?></textarea>
                         </div>
 
                         <button type="submit" class="st-btn st-btn-primary st-btn-block mt-4 py-3">
@@ -283,7 +330,7 @@
         $('#addSalesItemBtn').click(function() {
             var productId = $('#productSelect').val();
             var qty = parseInt($('#qtyInput').val()) || 1;
-            
+
             if (!productId) {
                 alert('Please select a product!');
                 return;
@@ -321,7 +368,7 @@
                 <td><input type="text" class="st-input-field product-subtotal" readonly value="${(price * qty).toFixed(0)}"></td>
                 <td><button type="button" class="st-btn-delete st-btn-small remove-row"><i class="fas fa-trash"></i></button></td>
             </tr>`;
-            
+
             var $row = $(row);
             $row.find('.product-select-inner').val(productId);
             $('#productsTable tbody').append($row);
@@ -384,11 +431,11 @@
     function updateChange() {
         var grandTotal = parseFloat($('#grand_total').val()) || 0;
         var paymentAmount = parseFloat($('#payment_amount').val()) || 0;
-        
+
         $('#paid_amount').val(paymentAmount.toFixed(0));
-        
+
         var remaining = grandTotal - paymentAmount;
-        
+
         if (remaining <= 0) {
             $('#changeDisplay').text('Rp ' + Math.abs(remaining).toLocaleString('id-ID') + ' (Change)');
             $('#changeDisplay').css('color', '#28a745');

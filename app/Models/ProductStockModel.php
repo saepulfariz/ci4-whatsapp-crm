@@ -2,30 +2,30 @@
 
 namespace App\Models;
 
-use App\Entities\Customer;
+use App\Entities\ProductStock;
 use App\Traits\LogUserTrait;
 use CodeIgniter\Model;
 
-class CustomerModel extends Model
+class ProductStockModel extends Model
 {
     use LogUserTrait;
 
-    protected $table            = 'customers';
+    protected $table            = 'product_stocks';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = Customer::class;
+    protected $returnType       = ProductStock::class;
     protected $useSoftDeletes   = true;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'group_id',
-        'code',
-        'name',
-        'phone',
-        'category',
-        'address',
-        'status',
+        'product_id',
+        'type',
+        'qty',
+        'current_stock',
+        'prev_stock',
+        'note',
+        'date',
     ];
-    protected $cacheKey = 'customers';
+    protected $cacheKey = 'product_stocks';
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = false;
@@ -59,4 +59,22 @@ class CustomerModel extends Model
 
     // public $logName = false;
     public $logId = true;
+
+    public $types = [
+        [
+            'id' => 'Stock In',
+            'name' => 'Stock In',
+            'operation' => '+',
+        ],
+        [
+            'id' => 'Adjustment Increase',
+            'name' => 'Adjustment Increase',
+            'operation' => '+',
+        ],
+        [
+            'id' => 'Adjustment Decrease',
+            'name' => 'Adjustment Decrease',
+            'operation' => '-',
+        ],
+    ];
 }

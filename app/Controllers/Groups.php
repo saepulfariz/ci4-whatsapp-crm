@@ -5,18 +5,19 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class Customers extends BaseController
+class Groups extends BaseController
 {
     private $model;
-    private $model_group;
+    private $model_customer;
+
     private $link = 'customers';
-    private $view = 'customers';
-    private $title = 'Customers';
+    private $view = 'groups';
+    private $title = 'Groups';
     public function __construct()
     {
-        $this->title = temp_lang('customers.customers');
-        $this->model = new \App\Models\CustomerModel();
-        $this->model_group = new \App\Models\GroupModel();
+        $this->title = temp_lang('groups.groups');
+        $this->model = new \App\Models\GroupModel();
+        $this->model_customer = new \App\Models\CustomerModel();
     }
 
     /**
@@ -26,29 +27,15 @@ class Customers extends BaseController
      */
     public function index()
     {
-        $redirect = checkPermission('customers.access');
+        $redirect = checkPermission('groups.access');
         if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
             return $redirect;
-        }
-
-        $status = $this->request->getVar('status') ?? null;
-        $group_id = $this->request->getVar('group_id') ?? null;
-
-        $customers = $this->model->select('customers.*, groups.name as group_name')->join('groups', 'groups.id = customers.group_id')->orderBy('id', 'desc');
-        if ($status) {
-            $customers = $customers->where('status', $status);
-        }
-
-        if ($group_id) {
-            $customers = $customers->where('group_id', $group_id);
         }
 
         $data = [
             'title' => $this->title,
             'link' => $this->link,
-            'params' => $this->request->getGet(),
-            'customers' => $customers->findAll(),
-            'groups' => $this->model_group->select('groups.*, count(customers.id) as total_member')->join('customers', 'customers.group_id = groups.id', 'left')->groupBy('groups.id')->orderBy('id', 'desc')->findAll(),
+            'groups' => $this->model->orderBy('id', 'desc')->findAll(),
         ];
 
         return view($this->view . '/index', $data);
@@ -73,7 +60,7 @@ class Customers extends BaseController
      */
     public function new()
     {
-        $redirect = checkPermission('customers.create');
+        $redirect = checkPermission('groups.create');
         if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
             return $redirect;
         }
@@ -93,19 +80,18 @@ class Customers extends BaseController
      */
     public function create()
     {
-        $redirect = checkPermission('customers.create');
+        $redirect = checkPermission('groups.create');
         if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
             return $redirect;
         }
 
         $rules = [
-            'group_id' => 'required',
             'code' => 'required',
             'name' => 'required',
-            'phone' => 'required',
-            'category' => 'required',
+            'description' => 'required',
             'status' => 'required',
         ];
+
 
         $input = $this->request->getVar();
 
@@ -118,11 +104,9 @@ class Customers extends BaseController
 
         try {
             $data = [
-                'group_id' => $this->request->getVar('group_id', FILTER_SANITIZE_STRING),
                 'code' => $this->request->getVar('code', FILTER_SANITIZE_STRING),
                 'name' => $this->request->getVar('name', FILTER_SANITIZE_STRING),
-                'phone' => $this->request->getVar('phone', FILTER_SANITIZE_STRING),
-                'category' => $this->request->getVar('category', FILTER_SANITIZE_STRING),
+                'description' => $this->request->getVar('description', FILTER_SANITIZE_STRING),
                 'status' => $this->request->getVar('status', FILTER_SANITIZE_STRING),
             ];
 
@@ -130,7 +114,7 @@ class Customers extends BaseController
 
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();
-                return redirect()->back()->with('error', temp_lang('customers.create_error'))->withInput();
+                return redirect()->back()->with('error', temp_lang('groups.create_error'))->withInput();
             }
 
             $this->db->transCommit();
@@ -138,12 +122,13 @@ class Customers extends BaseController
             $cache = \Config\Services::cache();
             $cache->delete($this->model->cacheKey);
 
-            return redirect()->with('success',  temp_lang('customers.create_success'))->to($this->link);
+            return redirect()->with('success',  temp_lang('groups.create_success'))->to($this->link);
         } catch (\Throwable $th) {
             $this->db->transRollback();
-            return redirect()->back()->with('error', temp_lang('customers.create_error'))->withInput();
+            return redirect()->back()->with('error', temp_lang('groups.create_error'))->withInput();
         }
     }
+
 
 
     /**
@@ -155,14 +140,14 @@ class Customers extends BaseController
      */
     public function edit($id = null)
     {
-        $redirect = checkPermission('customers.edit');
+        $redirect = checkPermission('groups.edit');
         if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
             return $redirect;
         }
 
-        $customer = $this->model->find($id);
+        $group = $this->model->find($id);
 
-        if (!$customer) {
+        if (!$group) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
             // return redirect()->to($this->link);
         }
@@ -170,7 +155,7 @@ class Customers extends BaseController
         $data = [
             'title' => $this->title,
             'link' => $this->link,
-            'customer' => $customer,
+            'group' => $group,
         ];
 
         return view($this->view . '/edit', $data);
@@ -185,23 +170,21 @@ class Customers extends BaseController
      */
     public function update($id = null)
     {
-        $redirect = checkPermission('customers.edit');
+        $redirect = checkPermission('groups.edit');
         if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
             return $redirect;
         }
 
-        $customer = $this->model->find($id);
+        $group = $this->model->find($id);
 
-        if (!$customer) {
+        if (!$group) {
             return redirect()->to($this->link);
         }
 
         $rules = [
-            'group_id' => 'required',
             'code' => 'required',
             'name' => 'required',
-            'phone' => 'required',
-            'category' => 'required',
+            'description' => 'required',
             'status' => 'required',
         ];
 
@@ -218,11 +201,9 @@ class Customers extends BaseController
 
 
             $data = [
-                'group_id' => $this->request->getVar('group_id', FILTER_SANITIZE_STRING),
                 'code' => $this->request->getVar('code', FILTER_SANITIZE_STRING),
                 'name' => $this->request->getVar('name', FILTER_SANITIZE_STRING),
-                'phone' => $this->request->getVar('phone', FILTER_SANITIZE_STRING),
-                'category' => $this->request->getVar('category', FILTER_SANITIZE_STRING),
+                'description' => $this->request->getVar('description', FILTER_SANITIZE_STRING),
                 'status' => $this->request->getVar('status', FILTER_SANITIZE_STRING),
             ];
 
@@ -231,7 +212,7 @@ class Customers extends BaseController
 
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();
-                return redirect()->back()->with('error',  temp_lang('customers.update_error'))->withInput();
+                return redirect()->back()->with('error',  temp_lang('groups.update_error'))->withInput();
             }
 
             $this->db->transCommit();
@@ -239,10 +220,10 @@ class Customers extends BaseController
             $cache = \Config\Services::cache();
             $cache->delete($this->model->cacheKey);
 
-            return redirect()->with('success', temp_lang('customers.update_success'))->to($this->link);
+            return redirect()->with('success', temp_lang('groups.update_success'))->to($this->link);
         } catch (\Throwable $th) {
             $this->db->transRollback();
-            return redirect()->back()->with('error', temp_lang('customers.update_error'))->withInput();
+            return redirect()->back()->with('error', temp_lang('groups.update_error'))->withInput();
         }
     }
 
@@ -255,25 +236,32 @@ class Customers extends BaseController
      */
     public function delete($id = null)
     {
-        $redirect = checkPermission('customers.delete');
+        $redirect = checkPermission('groups.delete');
         if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
             return $redirect;
         }
 
-        $customer = $this->model->find($id);
+        $group = $this->model->find($id);
 
-        if (!$customer) {
+        if (!$group) {
             return redirect()->to($this->link);
         }
 
         $this->db->transBegin();
 
         try {
+
+            // check use in customers   
+            $customer = $this->model_customer->where('group_id', $id)->first();
+            if ($customer) {
+                return redirect()->back()->with('error', temp_lang('groups.group_used_in_customers'))->withInput();
+            }
+
             $this->model->delete($id);
 
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();
-                return redirect()->back()->with('error', temp_lang('customers.delete_error'))->withInput();
+                return redirect()->back()->with('error', temp_lang('groups.delete_error'))->withInput();
             }
 
             $this->db->transCommit();
@@ -281,53 +269,10 @@ class Customers extends BaseController
             $cache = \Config\Services::cache();
             $cache->delete($this->model->cacheKey);
 
-            return redirect()->with('success', temp_lang('customers.delete_success'))->to($this->link);
+            return redirect()->with('success', temp_lang('groups.delete_success'))->to($this->link);
         } catch (\Throwable $th) {
             $this->db->transRollback();
-            return redirect()->back()->with('error', temp_lang('customers.delete_error'))->withInput();
+            return redirect()->back()->with('error', temp_lang('groups.delete_error'))->withInput();
         }
-    }
-
-    function activate($id = null)
-    {
-        $redirect = checkPermission('customers.edit');
-        if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
-            return $redirect;
-        }
-
-        $product = $this->model->find($id);
-
-        if (!$product) {
-            return redirect()->to($this->link);
-        }
-
-        $this->model->update($id, ['is_active' => 1]);
-
-        $cache = \Config\Services::cache();
-        $cache->delete($this->model->cacheKey);
-
-        return redirect()->with('success', temp_lang('customers.activate_success'))->to($this->link);
-    }
-
-    function deactivate($id = null)
-    {
-        $redirect = checkPermission('customers.edit');
-        if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
-            return $redirect;
-        }
-
-
-        $product = $this->model->find($id);
-
-        if (!$product) {
-            return redirect()->to($this->link);
-        }
-
-        $this->model->update($id, ['is_active' => 0]);
-
-        $cache = \Config\Services::cache();
-        $cache->delete($this->model->cacheKey);
-
-        return redirect()->with('success', temp_lang('customers.deactivate_success'))->to($this->link);
     }
 }

@@ -17,6 +17,7 @@ class TransactionModel extends Model
     protected $useSoftDeletes   = true;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'code',
         'customer_id',
         'status',
         'order_date',
@@ -65,4 +66,39 @@ class TransactionModel extends Model
 
     // public $logName = false;
     public $logId = true;
+
+    public function generateTransactionCode()
+    {
+        $db = \Config\Database::connect();
+        $date = date('Ymd');
+        $prefix = 'TRX-' . $date . '-';
+
+        $db->transStart();
+
+        // Lock row dengan FOR UPDATE
+        $query = $db->query("
+            SELECT code 
+            FROM transactions 
+            WHERE code LIKE ?
+            ORDER BY code DESC 
+            LIMIT 1
+            FOR UPDATE
+        ", [$prefix . '%']);
+
+        $row = $query->getRow();
+
+        if ($row) {
+            $lastNumber = (int) substr($row->code, -3);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        $sequence = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        $newCode = $prefix . $sequence;
+
+        $db->transComplete();
+
+        return $newCode;
+    }
 }

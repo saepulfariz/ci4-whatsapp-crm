@@ -8,6 +8,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 class Categories extends BaseController
 {
     private $model;
+    private $productModel;
     private $link = 'categories';
     private $view = 'categories';
     private $title = 'Categories';
@@ -15,6 +16,7 @@ class Categories extends BaseController
     {
         $this->title = temp_lang('categories.categories');
         $this->model = new \App\Models\CategoryModel();
+        $this->productModel = new \App\Models\ProductModel();
     }
 
     /**
@@ -32,7 +34,7 @@ class Categories extends BaseController
         $data = [
             'title' => $this->title,
             'link' => $this->link,
-            'categories' => $this->model->orderBy('id', 'desc')->findAll()
+            'categories' => $this->model->select('categories.*, count(products.id) as product_count')->join('products', 'products.category_id = categories.id', 'left')->groupBy('categories.id')->orderBy('id', 'desc')->findAll()
         ];
 
         return view($this->view . '/index', $data);
@@ -57,6 +59,8 @@ class Categories extends BaseController
      */
     public function new()
     {
+        return redirect()->to($this->link);
+
         $redirect = checkPermission('categories.create');
         if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
             return $redirect;
@@ -83,7 +87,10 @@ class Categories extends BaseController
         }
 
         $rules = [
+            'code' => 'required',
             'name' => 'required',
+            'description' => 'required',
+            'status' => 'required',
         ];
 
         $input = $this->request->getVar();
@@ -97,7 +104,10 @@ class Categories extends BaseController
 
         try {
             $data = [
+                'code' => $this->request->getVar('code', FILTER_SANITIZE_STRING),
                 'name' => $this->request->getVar('name', FILTER_SANITIZE_STRING),
+                'description' => $this->request->getVar('description', FILTER_SANITIZE_STRING),
+                'status' => $this->request->getVar('status', FILTER_SANITIZE_STRING),
             ];
 
             $this->model->insert($data);
@@ -129,6 +139,8 @@ class Categories extends BaseController
      */
     public function edit($id = null)
     {
+        return redirect()->to($this->link);
+
         $redirect = checkPermission('categories.edit');
         if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
             return $redirect;
@@ -171,7 +183,10 @@ class Categories extends BaseController
         }
 
         $rules = [
+            'code' => 'required',
             'name' => 'required',
+            'description' => 'required',
+            'status' => 'required',
         ];
 
         $input = $this->request->getVar();
@@ -187,7 +202,10 @@ class Categories extends BaseController
 
 
             $data = [
+                'code' => $this->request->getVar('code', FILTER_SANITIZE_STRING),
                 'name' => $this->request->getVar('name', FILTER_SANITIZE_STRING),
+                'description' => $this->request->getVar('description', FILTER_SANITIZE_STRING),
+                'status' => $this->request->getVar('status', FILTER_SANITIZE_STRING),
             ];
 
 
@@ -233,6 +251,14 @@ class Categories extends BaseController
         $this->db->transBegin();
 
         try {
+
+            // check exist use in data products
+            $product = $this->productModel->select('id')->where('category_id', $id)->findAll();
+            if ($product) {
+                $this->db->transRollback();
+                return redirect()->back()->with('error', temp_lang('categories.delete_error_used'))->withInput();
+            }
+
             $this->model->delete($id);
 
             if ($this->db->transStatus() === false) {

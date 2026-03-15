@@ -9,6 +9,7 @@ class Products extends BaseController
 {
     private $model;
     private $model_category;
+    private $model_product_stock;
 
     protected $uploadPath;
     protected $defaultImage;
@@ -21,6 +22,7 @@ class Products extends BaseController
         $this->title = temp_lang('products.products');
         $this->model = new \App\Models\ProductModel();
         $this->model_category = new \App\Models\CategoryModel();
+        $this->model_product_stock = new \App\Models\ProductStockModel();
 
         $this->uploadPath = WRITEPATH . 'uploads/products/';
 
@@ -50,10 +52,15 @@ class Products extends BaseController
             return $redirect;
         }
 
+        $category_id = $this->request->getVar('category_id') ?? null;
+
         $data = [
             'title' => $this->title,
             'link' => $this->link,
-            'products' => $this->model->getAllProductQty()
+            'category_id' => $category_id,
+            'products' => $this->model->getAllProductQty($category_id),
+            'categories' => $this->model_category->findAll(),
+            'stocks' => $this->model_product_stock->findAll(),
         ];
 
         return view($this->view . '/index', $data);
@@ -78,6 +85,8 @@ class Products extends BaseController
      */
     public function new()
     {
+        return redirect()->to($this->link);
+
         $redirect = checkPermission('products.create');
         if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
             return $redirect;
@@ -108,9 +117,13 @@ class Products extends BaseController
 
         $rules = [
             'category_id' => 'required',
+            'code' => 'required',
             'name' => 'required',
             'price' => 'required',
+            'cogs' => 'required',
             'qty' => 'required',
+            'min_qty' => 'required',
+            'status' => 'required',
             // 'description' => 'required',
         ];
 
@@ -143,11 +156,14 @@ class Products extends BaseController
         try {
             $data = [
                 'category_id' => $this->request->getVar('category_id', FILTER_SANITIZE_NUMBER_INT),
+                'code' => $this->request->getVar('code', FILTER_SANITIZE_STRING),
                 'name' => $this->request->getVar('name', FILTER_SANITIZE_STRING),
                 'price' => $this->request->getVar('price', FILTER_SANITIZE_STRING),
+                'cogs' => $this->request->getVar('cogs', FILTER_SANITIZE_STRING),
                 'qty' => $this->request->getVar('qty', FILTER_SANITIZE_STRING),
+                'min_qty' => $this->request->getVar('min_qty', FILTER_SANITIZE_STRING),
                 'description' => $this->request->getVar('description', FILTER_SANITIZE_STRING),
-                'is_active' => 1,
+                'status' => $this->request->getVar('status', FILTER_SANITIZE_STRING),
             ];
 
             // Jika ada upload file
@@ -166,6 +182,18 @@ class Products extends BaseController
             }
 
             $this->model->insert($data);
+
+            // product stock
+            $stock = [
+                'product_id' => $this->model->getInsertID(),
+                'qty' => $data['qty'],
+                'current_stock' => $data['qty'],
+                'prev_stock' => 0,
+                'note' => '',
+                'date' => date('Y-m-d H:i:s'),
+            ];
+
+            $this->model_product_stock->save($stock);
 
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();
@@ -194,6 +222,8 @@ class Products extends BaseController
      */
     public function edit($id = null)
     {
+        return redirect()->to($this->link);
+
         $redirect = checkPermission('products.edit');
         if ($redirect instanceof \CodeIgniter\HTTP\RedirectResponse) {
             return $redirect;
@@ -240,9 +270,12 @@ class Products extends BaseController
 
         $rules = [
             'category_id' => 'required',
+            'code' => 'required',
             'name' => 'required',
             'price' => 'required',
+            'cogs' => 'required',
             'qty' => 'required',
+            'min_qty' => 'required',
             // 'description' => 'required',
         ];
 
@@ -277,10 +310,14 @@ class Products extends BaseController
 
             $data = [
                 'category_id' => $this->request->getVar('category_id', FILTER_SANITIZE_NUMBER_INT),
+                'code' => $this->request->getVar('code', FILTER_SANITIZE_STRING),
                 'name' => $this->request->getVar('name', FILTER_SANITIZE_STRING),
                 'price' => $this->request->getVar('price', FILTER_SANITIZE_STRING),
+                'cogs' => $this->request->getVar('cogs', FILTER_SANITIZE_STRING),
                 'qty' => $this->request->getVar('qty', FILTER_SANITIZE_STRING),
+                'min_qty' => $this->request->getVar('min_qty', FILTER_SANITIZE_STRING),
                 'description' => $this->request->getVar('description', FILTER_SANITIZE_STRING),
+                'status' => $this->request->getVar('status', FILTER_SANITIZE_STRING),
             ];
 
             // Jika ada upload file

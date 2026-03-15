@@ -16,9 +16,22 @@ class CreateCategoriesTable extends Migration
                 'unsigned'       => true,
                 'auto_increment' => true,
             ],
+            'code' => [
+                'type'       => 'VARCHAR',
+                'constraint' => '255',
+            ],
             'name' => [
                 'type'       => 'VARCHAR',
                 'constraint' => '255',
+            ],
+            'description' => [
+                'type'       => 'TEXT',
+                'null' => true
+            ],
+            'status' => [
+                'type'       => 'VARCHAR',
+                'constraint' => '255',
+                'default' => 'Active'
             ],
             'cid' => [
                 'type'           => 'INT',

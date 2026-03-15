@@ -67,11 +67,14 @@ class SeedProducts extends Seeder
 
         $this->db->table('auth_permissions_groups')->insertBatch($data);
 
+        $parent_id = $this->db->table('auth_menus')->limit(1)->where('title', 'Master Data')->get()->getRowArray()['id'] ?? null;
+
+
         if (ENVIRONMENT === 'development') {
             // mode dev
             $data = [
                 [
-                    'parent_id' => NULL,
+                    'parent_id' => $parent_id,
                     'title' => 'Products',
                     'icon' => 'fas fa-box-open',
                     'route' => 'products',
@@ -83,7 +86,7 @@ class SeedProducts extends Seeder
         } else {
             $data = [
                 [
-                    'parent_id' => NULL,
+                    'parent_id' => $parent_id,
                     'title' => 'Products',
                     'icon' => 'fas fa-box-open',
                     'route' => 'products',
@@ -99,21 +102,27 @@ class SeedProducts extends Seeder
         $data = [
             [
                 'category_id' => 1,
+                'code' => 'STRW-001',
                 'name' => 'Strawbery chesee',
                 'price' => 3500,
-                'qty' => 100,
+                'cogs' => 2500,
+                'qty' => 50,
+                'min_qty' => 10,
                 'image' => 'product.png',
                 'description' => '',
-                'is_active' => 1,
+                'status' => 'Active',
             ],
             [
                 'category_id' => 1,
+                'code' => 'STRW-002',
                 'name' => 'Strawbery messes',
                 'price' => 3500,
+                'cogs' => 2500,
                 'qty' => 100,
+                'min_qty' => 10,
                 'image' => 'product.png',
                 'description' => '',
-                'is_active' => 1,
+                'status' => 'Active',
             ],
         ];
 

@@ -4,7 +4,98 @@ namespace App\Libraries;
 
 class MenuCells
 {
-    public function renderMenu(array $params)
+    public function renderMenu(array $params): string
+    {
+        $result = $this->renderMenuRecursive($params);
+
+        return $result['html'];
+    }
+
+    private function renderMenuRecursive(array $params): array
+    {
+        $request = \Config\Services::request();
+        $segments = $request->getUri();
+        $currentRoute = $segments->getRoutePath();
+
+        $menus = $params['menus'];
+        $isSub = $params['sub'] ?? false;
+
+        $html = '';
+        $hasActive = false;
+
+        foreach ($menus as $menu) {
+
+            $hasChildren = !empty($menu['children']);
+
+            $activeClass = '';
+            $isActive = false;
+
+            if (!empty($menu['route']) && $menu['route'] !== '#') {
+                if ($this->areUrlsSimilar($menu['route'], $currentRoute)) {
+                    $activeClass = 'active';
+                    $isActive = true;
+                    $hasActive = true;
+                }
+            }
+
+            if ($hasChildren) {
+
+                $submenu = $this->renderMenuRecursive([
+                    'menus' => $menu['children'],
+                    'sub' => true
+                ]);
+
+                $childActive = $submenu['active'] ?? false;
+
+                $openClass = $childActive ? 'open' : '';
+
+                $submenuId = 'submenu-' . $menu['id'];
+
+                $html .= '<button class="st-nav-item st-submenu-toggle ' . $openClass . '" data-submenu="' . $submenuId . '">';
+
+                if ($menu['icon']) {
+                    $html .= '<span class="icon"><i class="' . esc($menu['icon']) . '"></i></span>';
+                }
+
+                $html .= '<span>' . esc($menu['title']) . '</span>';
+                $html .= '<span class="st-submenu-arrow">▼</span>';
+                $html .= '</button>';
+
+                $html .= '<div class="st-submenu ' . $openClass . '" id="' . $submenuId . '">';
+                $html .= $submenu['html'];
+                $html .= '</div>';
+
+                if ($childActive) {
+                    $hasActive = true;
+                }
+            } else {
+
+                if ($isSub) {
+
+                    $html .= '<a class="st-nav-subitem ' . $activeClass . '" href="' . site_url($menu['route']) . '">';
+                    $html .= '<span>' . esc($menu['title']) . '</span>';
+                    $html .= '</a>';
+                } else {
+
+                    $html .= '<a class="st-nav-item ' . $activeClass . '" href="' . site_url($menu['route']) . '">';
+
+                    if ($menu['icon']) {
+                        $html .= '<span class="icon"><i class="' . esc($menu['icon']) . '"></i></span>';
+                    }
+
+                    $html .= '<span>' . esc($menu['title']) . '</span>';
+                    $html .= '</a>';
+                }
+            }
+        }
+
+        return [
+            'html' => $html,
+            'active' => $hasActive
+        ];
+    }
+
+    public function renderMenu1(array $params)
     {
         $request = \Config\Services::request();
         $segments = $request->getUri();

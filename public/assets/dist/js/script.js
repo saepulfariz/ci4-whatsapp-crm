@@ -8,23 +8,7 @@
 // ========================================
 
 // Category Master Data
-const categoriesData = [
-    { id: 1, code: 'CAT-001', name: 'Regular Donuts', description: 'Classic donut varieties', status: 'Active' },
-    { id: 2, code: 'CAT-002', name: 'Premium Donuts', description: 'Premium donut selection', status: 'Active' },
-    { id: 3, code: 'CAT-003', name: 'Bomboloni', description: 'Bomboloni pastries', status: 'Active' },
-    { id: 4, code: 'CAT-004', name: 'Cold Drinks', description: 'Cold beverage options', status: 'Active' },
-    { id: 5, code: 'CAT-005', name: 'Coffee Drinks', description: 'Hot and cold coffee', status: 'Active' },
-];
 
-const productsData = [
-    { id: 1, code: 'DT-001', name: 'Sugar Donut', category: 'Regular Donuts', price: 25000, cogs: 10000, stock: 25, minStock: 10, status: 'Active' },
-    { id: 2, code: 'DT-002', name: 'Chocolate Donut', category: 'Regular Donuts', price: 28000, cogs: 11000, stock: 18, minStock: 10, status: 'Active' },
-    { id: 3, code: 'DT-003', name: 'Cheese Donut', category: 'Regular Donuts', price: 32000, cogs: 12500, stock: 5, minStock: 10, status: 'Active' },
-    { id: 4, code: 'BOM-001', name: 'Chocolate Bomboloni', category: 'Bomboloni', price: 35000, cogs: 14000, stock: 12, minStock: 8, status: 'Active' },
-    { id: 5, code: 'BEV-001', name: 'Iced Tea', category: 'Cold Drinks', price: 18000, cogs: 6000, stock: 8, minStock: 15, status: 'Active' },
-    { id: 6, code: 'BEV-002', name: 'Coffee Milk', category: 'Coffee Drinks', price: 22000, cogs: 8000, stock: 15, minStock: 12, status: 'Active' },
-    { id: 7, code: 'BEV-003', name: 'Thai Tea', category: 'Cold Drinks', price: 20000, cogs: 7000, stock: 3, minStock: 10, status: 'Active' },
-];
 
 const stockMutationsData = [
     { id: 1, date: '2026-03-10', productCode: 'DT-001', productName: 'Sugar Donut', type: 'Stock In', qty: 20, prevStock: 5, currentStock: 25, notes: 'Morning stock', user: 'Admin' },
@@ -83,35 +67,50 @@ let broadcastImageFile = null;
 
 document.querySelectorAll('.st-nav-item').forEach(btn => {
     if (btn.classList.contains('st-submenu-toggle')) {
+
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const submenuId = btn.dataset.submenu + '-submenu';
+
+            const submenuId = btn.dataset.submenu;
             const submenu = document.getElementById(submenuId);
+
+            if (!submenu) return;
+
             btn.classList.toggle('open');
             submenu.classList.toggle('open');
         });
+
     } else {
+
         btn.addEventListener('click', (e) => {
+
             const page = btn.dataset.page;
-            console.log(page);
             if (page) navigateToPage(page);
-            
-            // Update active state
-            document.querySelectorAll('.st-nav-item, .st-nav-subitem').forEach(item => item.classList.remove('active'));
+
+            document.querySelectorAll('.st-nav-item, .st-nav-subitem')
+                .forEach(item => item.classList.remove('active'));
+
             btn.classList.add('active');
+
         });
+
     }
 });
 
 document.querySelectorAll('.st-nav-subitem').forEach(btn => {
+
     btn.addEventListener('click', (e) => {
+
         const page = btn.dataset.page;
-        navigateToPage(page);
-        
-        // Update active state
-        document.querySelectorAll('.st-nav-item, .st-nav-subitem').forEach(item => item.classList.remove('active'));
+        if (page) navigateToPage(page);
+
+        document.querySelectorAll('.st-nav-item, .st-nav-subitem')
+            .forEach(item => item.classList.remove('active'));
+
         btn.classList.add('active');
+
     });
+
 });
 
 function navigateToPage(pageName) {
@@ -138,9 +137,9 @@ function navigateToPage(pageName) {
         
         // Load data based on page
         if (pageName === 'master-product') {
-            loadProductsTable();
+            // loadProductsTable();
         } else if (pageName === 'master-category') {
-            loadCategoriesTable();
+            // loadCategoriesTable();
         } else if (pageName === 'master-customer') {
             loadCustomersTable();
             loadGroupsTable();
@@ -156,549 +155,7 @@ function navigateToPage(pageName) {
     }
 }
 
-// ========================================
-// PRODUCTS PAGE
-// ========================================
 
-function loadProductsTable() {
-    const tbody = document.getElementById('productsTableBody');
-    tbody.innerHTML = '';
-    
-    productsData.forEach((product, index) => {
-        const statusBadge = product.status === 'Active' 
-            ? '<span class="st-badge active">Active</span>' 
-            : '<span class="st-badge inactive">Inactive</span>';
-        
-        const stockStatus = product.stock <= product.minStock 
-            ? '<span class="st-badge low">Low</span>' 
-            : '<span class="st-badge safe">Safe</span>';
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${product.code}</td>
-            <td>${product.name}</td>
-            <td>${product.category}</td>
-            <td>Rp ${product.price.toLocaleString('id-ID')}</td>
-            <td>Rp ${product.cogs.toLocaleString('id-ID')}</td>
-            <td>${product.stock}</td>
-            <td>${product.minStock}</td>
-            <td>${statusBadge}</td>
-            <td>
-                <div class="st-action-btns">
-                    <button class="btn-edit btn-small" onclick="editProduct(${product.id})">Edit</button>
-                    <button class="btn-delete btn-small" onclick="deleteProduct(${product.id})">Delete</button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-    
-    // Setup search & filter
-    setupProductFilters();
-}
-
-function setupProductFilters() {
-    const searchInput = document.getElementById('productSearch');
-    const categorySelect = document.getElementById('categoryFilter');
-    
-    // Populate category filter from categoriesData
-    categorySelect.innerHTML = '<option value="">All Categories</option>';
-    categoriesData.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat.name;
-        option.textContent = cat.name;
-        categorySelect.appendChild(option);
-    });
-    
-    const filterTable = () => {
-        const searchTerm = searchInput.value.toLowerCase();
-        const categoryFilter = categorySelect.value;
-        
-        document.querySelectorAll('#productsTableBody tr').forEach(row => {
-            const name = row.cells[2].textContent.toLowerCase();
-            const category = row.cells[3].textContent;
-            
-            const matchesSearch = name.includes(searchTerm);
-            const matchesCategory = !categoryFilter || category === categoryFilter;
-            
-            row.style.display = (matchesSearch && matchesCategory) ? '' : 'none';
-        });
-    };
-    
-    searchInput.addEventListener('keyup', filterTable);
-    categorySelect.addEventListener('change', filterTable);
-}
-
-function openProductModal() {
-    editingProductId = null;
-    document.getElementById('productModalTitle').textContent = 'Add Product';
-    document.getElementById('productForm').reset();
-    document.getElementById('productModal').classList.add('show');
-}
-
-function editProduct(id) {
-    const product = productsData.find(p => p.id === id);
-    if (!product) return;
-    
-    editingProductId = id;
-    document.getElementById('productModalTitle').textContent = 'Edit Product';
-    document.getElementById('productCode').value = product.code;
-    document.getElementById('productName').value = product.name;
-    document.getElementById('productCategory').value = product.category;
-    document.getElementById('productPrice').value = product.price;
-    document.getElementById('productCOGS').value = product.cogs;
-    document.getElementById('productStock').value = product.stock;
-    document.getElementById('productMinStock').value = product.minStock;
-    document.getElementById('productStatus').value = product.status;
-    document.getElementById('productModal').classList.add('show');
-}
-
-function saveProduct(event) {
-    event.preventDefault();
-    
-    const product = {
-        code: document.getElementById('productCode').value,
-        name: document.getElementById('productName').value,
-        category: document.getElementById('productCategory').value,
-        price: parseInt(document.getElementById('productPrice').value),
-        cogs: parseInt(document.getElementById('productCOGS').value),
-        stock: parseInt(document.getElementById('productStock').value),
-        minStock: parseInt(document.getElementById('productMinStock').value),
-        status: document.getElementById('productStatus').value
-    };
-    
-    if (editingProductId) {
-        const idx = productsData.findIndex(p => p.id === editingProductId);
-        if (idx !== -1) {
-            Object.assign(productsData[idx], product);
-        }
-        showToast('Product updated successfully!');
-    } else {
-        const newProduct = { id: Math.max(...productsData.map(p => p.id), 0) + 1, ...product };
-        productsData.push(newProduct);
-        showToast('Product added successfully!');
-    }
-    
-    closeProductModal();
-    loadProductsTable();
-    loadSalesProductSelect();
-    loadCategoriesTable();
-}
-
-function closeProductModal() {
-    document.getElementById('productModal').classList.remove('show');
-}
-
-function deleteProduct(id) {
-    if (confirm('Are you sure you want to delete this product?')) {
-        const idx = productsData.findIndex(p => p.id === id);
-        if (idx !== -1) {
-            productsData.splice(idx, 1);
-            loadProductsTable();
-            loadCategoriesTable();
-            showToast('Product deleted!');
-        }
-    }
-}
-
-// ========================================
-// CATEGORIES PAGE
-// ========================================
-
-function loadCategoriesTable() {
-    const tbody = document.getElementById('categoriesTableBody');
-    tbody.innerHTML = '';
-    
-    categoriesData.forEach((category, index) => {
-        const statusBadge = category.status === 'Active' 
-            ? '<span class="st-badge active">Active</span>' 
-            : '<span class="st-badge inactive">Inactive</span>';
-        
-        const totalProducts = productsData.filter(p => p.category === category.name).length;
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${category.code}</td>
-            <td>${category.name}</td>
-            <td>${category.description}</td>
-            <td>${statusBadge}</td>
-            <td>${totalProducts}</td>
-            <td>
-                <div class="st-action-btns">
-                    <button class="btn-edit btn-small" onclick="editCategory(${category.id})">Edit</button>
-                    <button class="btn-delete btn-small" onclick="deleteCategory(${category.id})">Delete</button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-    
-    // Setup search filter
-    setupCategoryFilters();
-}
-
-function setupCategoryFilters() {
-    const searchInput = document.getElementById('categorySearch');
-    if (!searchInput) return;
-    
-    searchInput.addEventListener('keyup', () => {
-        const searchTerm = searchInput.value.toLowerCase();
-        
-        document.querySelectorAll('#categoriesTableBody tr').forEach(row => {
-            const name = row.cells[2].textContent.toLowerCase();
-            const code = row.cells[1].textContent.toLowerCase();
-            
-            const matchesSearch = name.includes(searchTerm) || code.includes(searchTerm);
-            row.style.display = matchesSearch ? '' : 'none';
-        });
-    });
-}
-
-function openCategoryModal() {
-    editingCategoryId = null;
-    document.getElementById('categoryModalTitle').textContent = 'Add Category';
-    document.getElementById('categoryForm').reset();
-    document.getElementById('categoryModal').classList.add('show');
-}
-
-function editCategory(id) {
-    const category = categoriesData.find(c => c.id === id);
-    if (!category) return;
-    
-    editingCategoryId = id;
-    document.getElementById('categoryModalTitle').textContent = 'Edit Category';
-    document.getElementById('categoryCode').value = category.code;
-    document.getElementById('categoryName').value = category.name;
-    document.getElementById('categoryDesc').value = category.description;
-    document.getElementById('categoryStatus').value = category.status;
-    document.getElementById('categoryModal').classList.add('show');
-}
-
-function saveCategory(event) {
-    event.preventDefault();
-    
-    const category = {
-        code: document.getElementById('categoryCode').value,
-        name: document.getElementById('categoryName').value,
-        description: document.getElementById('categoryDesc').value,
-        status: document.getElementById('categoryStatus').value
-    };
-    
-    if (editingCategoryId) {
-        const idx = categoriesData.findIndex(c => c.id === editingCategoryId);
-        if (idx !== -1) {
-            Object.assign(categoriesData[idx], category);
-        }
-        showToast('Category updated successfully!');
-    } else {
-        const newCategory = { id: Math.max(...categoriesData.map(c => c.id), 0) + 1, ...category };
-        categoriesData.push(newCategory);
-        showToast('Category added successfully!');
-    }
-    
-    closeCategoryModal();
-    loadCategoriesTable();
-    setupProductFilters();
-}
-
-function closeCategoryModal() {
-    document.getElementById('categoryModal').classList.remove('show');
-}
-
-function deleteCategory(id) {
-    const category = categoriesData.find(c => c.id === id);
-    if (!category) return;
-    
-    const productsInCategory = productsData.filter(p => p.category === category.name).length;
-    if (productsInCategory > 0) {
-        showToast(`Cannot delete category with ${productsInCategory} product(s)!`);
-        return;
-    }
-    
-    if (confirm('Are you sure you want to delete this category?')) {
-        const idx = categoriesData.findIndex(c => c.id === id);
-        if (idx !== -1) {
-            categoriesData.splice(idx, 1);
-            loadCategoriesTable();
-            showToast('Category deleted!');
-        }
-    }
-}
-
-// ========================================
-// CUSTOMERS & GROUPS PAGE
-// ========================================
-
-function loadCustomersTable() {
-    const tbody = document.getElementById('customersTableBody');
-    tbody.innerHTML = '';
-    
-    customersData.forEach((customer, index) => {
-        const statusBadge = customer.status === 'Active' 
-            ? '<span class="st-badge active">Active</span>' 
-            : '<span class="st-badge inactive">Inactive</span>';
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${customer.code}</td>
-            <td>${customer.name}</td>
-            <td>${customer.phone}</td>
-            <td>${customer.tag}</td>
-            <td>${customer.group}</td>
-            <td>${statusBadge}</td>
-            <td>
-                <div class="st-action-btns">
-                    <button class="btn-edit btn-small" onclick="editCustomer(${customer.id})">Edit</button>
-                    <button class="btn-delete btn-small" onclick="deleteCustomer(${customer.id})">Delete</button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-    
-    setupCustomerFilters();
-}
-
-function setupCustomerFilters() {
-    const searchInput = document.getElementById('customerSearch');
-    const groupSelect = document.getElementById('groupFilter');
-    const statusSelect = document.getElementById('customerStatusFilter');
-    
-    // Populate group filter
-    groupSelect.innerHTML = '<option value="">All Groups</option>';
-    groupsData.forEach(group => {
-        const option = document.createElement('option');
-        option.value = group.name;
-        option.textContent = group.name;
-        groupSelect.appendChild(option);
-    });
-    
-    const filterTable = () => {
-        const searchTerm = searchInput.value.toLowerCase();
-        const groupFilter = groupSelect.value;
-        const statusFilter = statusSelect.value;
-        
-        document.querySelectorAll('#customersTableBody tr').forEach(row => {
-            const name = row.cells[2].textContent.toLowerCase();
-            const phone = row.cells[3].textContent.toLowerCase();
-            const group = row.cells[5].textContent;
-            const status = row.cells[6].textContent;
-            
-            const matchesSearch = name.includes(searchTerm) || phone.includes(searchTerm);
-            const matchesGroup = !groupFilter || group === groupFilter;
-            const matchesStatus = !statusFilter || status.includes(statusFilter);
-            
-            row.style.display = (matchesSearch && matchesGroup && matchesStatus) ? '' : 'none';
-        });
-    };
-    
-    searchInput.addEventListener('keyup', filterTable);
-    groupSelect.addEventListener('change', filterTable);
-    statusSelect.addEventListener('change', filterTable);
-}
-
-function openCustomerModal() {
-    editingCustomerId = null;
-    document.getElementById('customerModalTitle').textContent = 'Add Customer';
-    document.getElementById('customerForm').reset();
-    populateCustomerGroupSelect();
-    document.getElementById('customerModal').classList.add('show');
-}
-
-function populateCustomerGroupSelect() {
-    const select = document.getElementById('customerGroup');
-    select.innerHTML = '<option value="">Select Group</option>';
-    groupsData.forEach(group => {
-        const option = document.createElement('option');
-        option.value = group.name;
-        option.textContent = group.name;
-        select.appendChild(option);
-    });
-}
-
-function editCustomer(id) {
-    const customer = customersData.find(c => c.id === id);
-    if (!customer) return;
-    
-    editingCustomerId = id;
-    document.getElementById('customerModalTitle').textContent = 'Edit Customer';
-    document.getElementById('customerCode').value = customer.code;
-    document.getElementById('customerName').value = customer.name;
-    document.getElementById('customerPhone').value = customer.phone;
-    document.getElementById('customerTag').value = customer.tag;
-    populateCustomerGroupSelect();
-    document.getElementById('customerGroup').value = customer.group;
-    document.getElementById('customerStatus').value = customer.status;
-    document.getElementById('customerNotes').value = customer.notes;
-    document.getElementById('customerModal').classList.add('show');
-}
-
-function saveCustomer(event) {
-    event.preventDefault();
-    
-    const customer = {
-        code: document.getElementById('customerCode').value,
-        name: document.getElementById('customerName').value,
-        phone: document.getElementById('customerPhone').value,
-        tag: document.getElementById('customerTag').value,
-        group: document.getElementById('customerGroup').value,
-        status: document.getElementById('customerStatus').value,
-        notes: document.getElementById('customerNotes').value
-    };
-    
-    if (editingCustomerId) {
-        const idx = customersData.findIndex(c => c.id === editingCustomerId);
-        if (idx !== -1) {
-            Object.assign(customersData[idx], customer);
-        }
-        showToast('Customer updated!');
-    } else {
-        const newCustomer = { id: Math.max(...customersData.map(c => c.id), 0) + 1, ...customer };
-        customersData.push(newCustomer);
-        showToast('Customer added!');
-    }
-    
-    closeCustomerModal();
-    loadCustomersTable();
-    loadBroadcastContactList();
-}
-
-function closeCustomerModal() {
-    document.getElementById('customerModal').classList.remove('show');
-}
-
-function deleteCustomer(id) {
-    if (confirm('Delete this customer?')) {
-        const idx = customersData.findIndex(c => c.id === id);
-        if (idx !== -1) {
-            customersData.splice(idx, 1);
-            loadCustomersTable();
-            showToast('Customer deleted!');
-        }
-    }
-}
-
-function loadGroupsTable() {
-    const tbody = document.getElementById('groupsTableBody');
-    tbody.innerHTML = '';
-    
-    groupsData.forEach((group, index) => {
-        const statusBadge = group.status === 'Active' 
-            ? '<span class="st-badge active">Active</span>' 
-            : '<span class="st-badge inactive">Inactive</span>';
-        
-        const totalMembers = customersData.filter(c => c.group === group.name).length;
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${group.code}</td>
-            <td>${group.name}</td>
-            <td>${group.description}</td>
-            <td>${totalMembers}</td>
-            <td>${statusBadge}</td>
-            <td>
-                <div class="st-action-btns">
-                    <button class="btn-edit btn-small" onclick="editGroup(${group.id})">Edit</button>
-                    <button class="btn-delete btn-small" onclick="deleteGroup(${group.id})">Delete</button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-    
-    setupGroupFilters();
-}
-
-function setupGroupFilters() {
-    const searchInput = document.getElementById('groupSearch');
-    if (!searchInput) return;
-    
-    searchInput.addEventListener('keyup', () => {
-        const searchTerm = searchInput.value.toLowerCase();
-        
-        document.querySelectorAll('#groupsTableBody tr').forEach(row => {
-            const name = row.cells[2].textContent.toLowerCase();
-            const code = row.cells[1].textContent.toLowerCase();
-            
-            row.style.display = (name.includes(searchTerm) || code.includes(searchTerm)) ? '' : 'none';
-        });
-    });
-}
-
-function openGroupModal() {
-    editingGroupId = null;
-    document.getElementById('groupModalTitle').textContent = 'Add Group';
-    document.getElementById('groupForm').reset();
-    document.getElementById('groupModal').classList.add('show');
-}
-
-function editGroup(id) {
-    const group = groupsData.find(g => g.id === id);
-    if (!group) return;
-    
-    editingGroupId = id;
-    document.getElementById('groupModalTitle').textContent = 'Edit Group';
-    document.getElementById('groupCode').value = group.code;
-    document.getElementById('groupName').value = group.name;
-    document.getElementById('groupDesc').value = group.description;
-    document.getElementById('groupStatus').value = group.status;
-    document.getElementById('groupModal').classList.add('show');
-}
-
-function saveGroup(event) {
-    event.preventDefault();
-    
-    const group = {
-        code: document.getElementById('groupCode').value,
-        name: document.getElementById('groupName').value,
-        description: document.getElementById('groupDesc').value,
-        status: document.getElementById('groupStatus').value
-    };
-    
-    if (editingGroupId) {
-        const idx = groupsData.findIndex(g => g.id === editingGroupId);
-        if (idx !== -1) {
-            Object.assign(groupsData[idx], group);
-        }
-        showToast('Group updated!');
-    } else {
-        const newGroup = { id: Math.max(...groupsData.map(g => g.id), 0) + 1, ...group };
-        groupsData.push(newGroup);
-        showToast('Group added!');
-    }
-    
-    closeGroupModal();
-    loadGroupsTable();
-    setupCustomerFilters();
-}
-
-function closeGroupModal() {
-    document.getElementById('groupModal').classList.remove('show');
-}
-
-function deleteGroup(id) {
-    const group = groupsData.find(g => g.id === id);
-    if (!group) return;
-    
-    const membersInGroup = customersData.filter(c => c.group === group.name).length;
-    if (membersInGroup > 0) {
-        showToast(`Cannot delete group with ${membersInGroup} member(s)!`);
-        return;
-    }
-    
-    if (confirm('Delete this group?')) {
-        const idx = groupsData.findIndex(g => g.id === id);
-        if (idx !== -1) {
-            groupsData.splice(idx, 1);
-            loadGroupsTable();
-            showToast('Group deleted!');
-        }
-    }
-}
 
 // ========================================
 // WHATSAPP BROADCAST PAGE
@@ -945,135 +402,13 @@ function viewBroadcast(id) {
     }
 }
 
-// ========================================
-// STOCK PAGE
-// ========================================
-
-function loadStockTable() {
-    const tbody = document.getElementById('stockTableBody');
-    tbody.innerHTML = '';
-    
-    stockMutationsData.forEach((mutation, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${mutation.date}</td>
-            <td>${mutation.productCode}</td>
-            <td>${mutation.productName}</td>
-            <td>${mutation.type}</td>
-            <td>${mutation.qty}</td>
-            <td>${mutation.prevStock}</td>
-            <td>${mutation.currentStock}</td>
-            <td>${mutation.notes}</td>
-            <td>${mutation.user}</td>
-        `;
-        tbody.appendChild(row);
-    });
-    
-    // Setup stock filters
-    setupStockFilters();
-}
-
-function setupStockFilters() {
-    const dateInput = document.getElementById('stockDateFilter');
-    const searchInput = document.getElementById('stockProductSearch');
-    const typeSelect = document.getElementById('mutationTypeFilter');
-    
-    const filterTable = () => {
-        const selectedDate = dateInput.value;
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedType = typeSelect.value;
-        
-        document.querySelectorAll('#stockTableBody tr').forEach(row => {
-            const date = row.cells[1].textContent;
-            const productName = row.cells[3].textContent.toLowerCase();
-            const type = row.cells[4].textContent;
-            
-            const matchesDate = !selectedDate || date.includes(selectedDate);
-            const matchesSearch = searchTerm === '' || productName.includes(searchTerm);
-            const matchesType = !selectedType || type === selectedType;
-            
-            row.style.display = (matchesDate && matchesSearch && matchesType) ? '' : 'none';
-        });
-    };
-    
-    dateInput.addEventListener('change', filterTable);
-    searchInput.addEventListener('keyup', filterTable);
-    typeSelect.addEventListener('change', filterTable);
-}
-
-function openStockModal() {
-    document.getElementById('stockForm').reset();
-    populateStockProductSelect();
-    document.getElementById('mutationDate').value = new Date().toISOString().slice(0, 16);
-    document.getElementById('stockModal').classList.add('show');
-}
-
-function populateStockProductSelect() {
-    const select = document.getElementById('mutationProduct');
-    select.innerHTML = '<option value="">Select Product</option>';
-    productsData.forEach(product => {
-        const option = document.createElement('option');
-        option.value = product.id;
-        option.textContent = `${product.code} - ${product.name}`;
-        select.appendChild(option);
-    });
-}
-
-// Populate product category dropdown in product st_modal
-function populateProductCategorySelect() {
-    const select = document.getElementById('productCategory');
-    select.innerHTML = '<option value="">Select Category</option>';
-    categoriesData.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat.name;
-        option.textContent = cat.name;
-        select.appendChild(option);
-    });
-}
-
-function saveStockMutation(event) {
-    event.preventDefault();
-    
-    const productId = parseInt(document.getElementById('mutationProduct').value);
-    const product = productsData.find(p => p.id === productId);
-    if (!product) return;
-    
-    const quantity = parseInt(document.getElementById('mutationQuantity').value);
-    const type = document.getElementById('mutationType').value;
-    
-    const newMutation = {
-        id: Math.max(...stockMutationsData.map(m => m.id), 0) + 1,
-        date: new Date(document.getElementById('mutationDate').value).toISOString().split('T')[0],
-        productCode: product.code,
-        productName: product.name,
-        type: type,
-        qty: quantity,
-        prevStock: product.stock,
-        currentStock: product.stock + quantity,
-        notes: document.getElementById('mutationNotes').value,
-        user: 'Admin'
-    };
-    
-    // Update product stock
-    product.stock = newMutation.currentStock;
-    
-    stockMutationsData.push(newMutation);
-    closeStockModal();
-    loadStockTable();
-    showToast('Stock mutation recorded!');
-}
-
-function closeStockModal() {
-    document.getElementById('stockModal').classList.remove('show');
-}
 
 // ========================================
 // SALES PAGE - POS SYSTEM
 // ========================================
 
 function loadSalesPage() {
-    loadSalesProductSelect();
+    // loadSalesProductSelect();
     renderSalesItems();
     loadSalesHistory();
 }
@@ -1442,11 +777,11 @@ function setupTabSwitching() {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initial load
-    loadProductsTable();
-    loadCategoriesTable();
-    loadSalesProductSelect();
-    populateStockProductSelect();
-    populateProductCategorySelect();
+    // loadProductsTable();
+    // loadCategoriesTable();
+    // loadSalesProductSelect();
+    // populateStockProductSelect();
+    // populateProductCategorySelect();
     setupTabSwitching();
     
     // Close modals when clicking outside

@@ -4,7 +4,7 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class CreateProductsTable extends Migration
+class CreateProductStocksTable extends Migration
 {
     public function up()
     {
@@ -16,48 +16,35 @@ class CreateProductsTable extends Migration
                 'unsigned'       => true,
                 'auto_increment' => true,
             ],
-            'category_id' => [
+            'product_id' => [
                 'type'           => 'INT',
                 'constraint'     => 11,
                 'unsigned'       => true,
             ],
-            'code' => [
+            'type' => [
                 'type'       => 'VARCHAR',
                 'constraint' => '255',
-            ],
-            'name' => [
-                'type'       => 'VARCHAR',
-                'constraint' => '255',
-            ],
-            'price' => [
-                'type'       => 'FLOAT',
-                'default' => 0
-            ],
-            'cogs' => [
-                'type'       => 'FLOAT',
-                'default' => 0
+                'default' => 'Stock In'
             ],
             'qty' => [
                 'type'       => 'FLOAT',
                 'default' => 0
             ],
-            'min_qty' => [
+            'current_stock' => [
                 'type'       => 'FLOAT',
                 'default' => 0
             ],
-            'image' => [
-                'type'       => 'VARCHAR',
-                'constraint' => '255',
-                'default' => 'product.png'
+            'prev_stock' => [
+                'type'       => 'FLOAT',
+                'default' => 0
             ],
-            'description' => [
+            'note' => [
                 'type'       => 'TEXT',
                 'null' => true,
             ],
-            'status' => [
-                'type'       => 'VARCHAR',
-                'constraint' => '255',
-                'default' => 'Active'
+            'date' => [
+                'type'           => 'DATETIME',
+                'null' => true,
             ],
             'cid' => [
                 'type'           => 'INT',
@@ -92,12 +79,12 @@ class CreateProductsTable extends Migration
 
         ]);
         $this->forge->addKey('id', true);
-        $this->forge->addForeignKey('category_id', 'categories', 'id');
-        $this->forge->createTable('products');
+        $this->forge->addForeignKey('product_id', 'products', 'id');
+        $this->forge->createTable('product_stocks');
     }
 
     public function down()
     {
-        $this->forge->dropTable('products');
+        $this->forge->dropTable('product_stocks');
     }
 }

@@ -2,30 +2,27 @@
 
 namespace App\Models;
 
-use App\Entities\Customer;
+use App\Entities\Group;
 use App\Traits\LogUserTrait;
 use CodeIgniter\Model;
 
-class CustomerModel extends Model
+class GroupModel extends Model
 {
     use LogUserTrait;
 
-    protected $table            = 'customers';
+    protected $table            = 'groups';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = Customer::class;
+    protected $returnType       = Group::class;
     protected $useSoftDeletes   = true;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'group_id',
         'code',
         'name',
-        'phone',
-        'category',
-        'address',
+        'description',
         'status',
     ];
-    protected $cacheKey = 'customers';
+    protected $cacheKey = 'groups';
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = false;

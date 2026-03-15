@@ -8,15 +8,15 @@
       <?= $this->include('template/sidebar'); ?>
 
       <main class="st-main-content">
-          <?= $this->include('template/topbar'); ?>
-          <div class="st-content-area">
-              <?= $this->renderSection('content'); ?>
-          </div>
+        <?= $this->include('template/topbar'); ?>
+        <div class="st-content-area">
+          <?= $this->renderSection('content'); ?>
+        </div>
       </main>
-  </div>
+    </div>
 
 
-  <?= $this->include('template/footer'); ?>
+    <?= $this->include('template/footer'); ?>
 </body>
 
 </html>

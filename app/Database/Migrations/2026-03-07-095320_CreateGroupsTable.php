@@ -4,55 +4,27 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class CreateProductsTable extends Migration
+class CreateGroupsTable extends Migration
 {
     public function up()
     {
-
         $this->forge->addField([
             'id' => [
-                'type'           => 'INT',
-                'constraint'     => 11,
-                'unsigned'       => true,
+                'type' => 'INT',
+                'constraint' => 11,
+                'unsigned' => true,
                 'auto_increment' => true,
             ],
-            'category_id' => [
-                'type'           => 'INT',
-                'constraint'     => 11,
-                'unsigned'       => true,
-            ],
             'code' => [
-                'type'       => 'VARCHAR',
-                'constraint' => '255',
+                'type' => 'VARCHAR',
+                'constraint' => 255,
             ],
             'name' => [
-                'type'       => 'VARCHAR',
-                'constraint' => '255',
-            ],
-            'price' => [
-                'type'       => 'FLOAT',
-                'default' => 0
-            ],
-            'cogs' => [
-                'type'       => 'FLOAT',
-                'default' => 0
-            ],
-            'qty' => [
-                'type'       => 'FLOAT',
-                'default' => 0
-            ],
-            'min_qty' => [
-                'type'       => 'FLOAT',
-                'default' => 0
-            ],
-            'image' => [
-                'type'       => 'VARCHAR',
-                'constraint' => '255',
-                'default' => 'product.png'
+                'type' => 'VARCHAR',
+                'constraint' => 255,
             ],
             'description' => [
-                'type'       => 'TEXT',
-                'null' => true,
+                'type' => 'TEXT',
             ],
             'status' => [
                 'type'       => 'VARCHAR',
@@ -89,15 +61,14 @@ class CreateProductsTable extends Migration
                 'type'           => 'DATETIME',
                 'null' => true,
             ],
-
         ]);
+
         $this->forge->addKey('id', true);
-        $this->forge->addForeignKey('category_id', 'categories', 'id');
-        $this->forge->createTable('products');
+        $this->forge->createTable('groups');
     }
 
     public function down()
     {
-        $this->forge->dropTable('products');
+        $this->forge->dropTable('groups');
     }
 }

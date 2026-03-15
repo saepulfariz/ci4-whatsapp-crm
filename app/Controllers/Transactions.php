@@ -11,6 +11,8 @@ use App\Models\ProductModel;
 use App\Models\PaymentMethodModel;
 use App\Models\PaymentModel;
 use App\Models\PaymentRefundModel;
+use App\Models\GroupModel;
+use App\Models\CategoryModel;
 
 class Transactions extends BaseController
 {
@@ -26,6 +28,9 @@ class Transactions extends BaseController
     private $view = 'transactions';
     private $title = 'Transactions';
 
+    private $model_group;
+    private $model_category;
+
     public function __construct()
     {
         $this->title = temp_lang('transactions.transactions') ?? 'Transactions';
@@ -36,6 +41,8 @@ class Transactions extends BaseController
         $this->paymentMethodModel = new PaymentMethodModel();
         $this->paymentModel = new PaymentModel();
         $this->paymentRefundModel = new PaymentRefundModel();
+        $this->model_group = new GroupModel();
+        $this->model_category = new CategoryModel();
     }
 
     public function index()
@@ -105,9 +112,11 @@ class Transactions extends BaseController
         $data = [
             'title' => $this->title,
             'link' => $this->link,
-            'customers' => $this->customerModel->where('is_active', 1)->findAll(),
-            'products' => $this->getProductsWithEffectiveStock(),
+            'customers' => $this->customerModel->where('status', 'Active')->findAll(),
+            'products' => $this->productModel->getProductsWithEffectiveStock(),
             'paymentMethods' => $this->paymentMethodModel->findAll(),
+            'groups' => $this->model_group->where('status', 'Active')->findAll(),
+            'categories' => $this->model_category->where('status', 'Active')->findAll(),
         ];
 
         return view($this->view . '/new', $data);
@@ -147,11 +156,27 @@ class Transactions extends BaseController
             $customerId = $this->request->getVar('customer_id');
 
             if ($isNewCustomer) {
+                $customerGroupId = $this->request->getVar('group_id');
+                $newGroup = $this->request->getVar('new_group_name');
+
+                if (!empty($newGroup)) {
+                    $groupData = [
+                        'name' => $newGroup,
+                        'status' => 'Active',
+                        'code' => strtoupper(substr($newGroup, 0, 3)) . rand(100, 999)
+                    ];
+                    $this->model_group->insert($groupData);
+                    $customerGroupId = $this->model_group->getInsertID();
+                }
+
                 $customerData = [
+                    'group_id' => $customerGroupId,
+                    'category' => $this->request->getVar('category'),
                     'name' => $this->request->getVar('customer_name', FILTER_SANITIZE_STRING),
                     'phone' => $this->request->getVar('customer_phone', FILTER_SANITIZE_STRING),
                     'address' => $this->request->getVar('customer_address', FILTER_SANITIZE_STRING),
-                    'is_active' => 1,
+                    'status' => 'Active',
+                    'code' => 'CUS' . date('YmdHis')
                 ];
                 $this->customerModel->insert($customerData);
                 $customerId = $this->customerModel->getInsertID();
@@ -166,7 +191,7 @@ class Transactions extends BaseController
             $prices = $this->request->getVar('price'); // Optional if taking from input, else we query product
 
             // Validate Stock first
-            $productsWithStock = $this->getProductsWithEffectiveStock();
+            $productsWithStock = $this->productModel->getProductsWithEffectiveStock();
             $stockMap = [];
             foreach ($productsWithStock as $p) {
                 $stockMap[$p->id] = $p->qty;
@@ -212,40 +237,34 @@ class Transactions extends BaseController
             $taxTotal = $this->request->getVar('tax_total') ?? 0;
             $totalAmount = ($subtotalPrice - $discountTotal) + $taxTotal;
 
-            // Process Payments
-            $paymentMethodIds = $this->request->getVar('payment_method_id');
-            $paymentAmounts = $this->request->getVar('payment_amount');
-            $paymentReferences = $this->request->getVar('payment_reference');
-            $paymentNotes = $this->request->getVar('payment_note');
-            $paymentProofFiles = $this->request->getFiles();
+            // Process Single Payment (Simplified UI)
+            $paymentMethodId = $this->request->getVar('payment_method_id');
+            $paymentAmount = floatval($this->request->getVar('payment_amount'));
+            $paymentReference = $this->request->getVar('payment_reference');
+            $paymentNote = $this->request->getVar('payment_note');
+            $paymentProofFile = $this->request->getFile('payment_proof');
 
             $paidAmount = 0;
             $paymentsData = [];
 
-            if ($paymentMethodIds) {
-                for ($i = 0; $i < count($paymentMethodIds); $i++) {
-                    $amt = floatval($paymentAmounts[$i]);
-                    if ($amt > 0) {
-                        $paidAmount += $amt;
+            if ($paymentAmount > 0) {
+                $paidAmount = $paymentAmount;
 
-                        // Handle Optional Payment Proof Upload
-                        $proofName = null;
-                        if (isset($paymentProofFiles['payment_proof'][$i]) && $paymentProofFiles['payment_proof'][$i]->isValid() && !$paymentProofFiles['payment_proof'][$i]->hasMoved()) {
-                            $proofName = $paymentProofFiles['payment_proof'][$i]->getRandomName();
-                            $paymentProofFiles['payment_proof'][$i]->move('uploads/payments/', $proofName);
-                        }
-
-                        $paymentsData[] = [
-                            'method_id' => $paymentMethodIds[$i],
-                            'amount' => $amt,
-                            'status' => 'paid',
-                            'paid_at' => date('Y-m-d H:i:s'),
-                            'payment_proof' => $proofName,
-                            'payment_reference' => $paymentReferences[$i] ?? null,
-                            'note' => $paymentNotes[$i] ?? null,
-                        ];
-                    }
+                $proofName = null;
+                if ($paymentProofFile && $paymentProofFile->isValid() && !$paymentProofFile->hasMoved()) {
+                    $proofName = $paymentProofFile->getRandomName();
+                    $paymentProofFile->move('uploads/payments/', $proofName);
                 }
+
+                $paymentsData[] = [
+                    'method_id' => $paymentMethodId,
+                    'amount' => $paymentAmount,
+                    'status' => 'paid',
+                    'paid_at' => date('Y-m-d H:i:s'),
+                    'payment_proof' => $proofName,
+                    'payment_reference' => $paymentReference ?? null,
+                    'note' => $paymentNote ?? null,
+                ];
             }
 
             // Determine Payment Status
@@ -260,6 +279,7 @@ class Transactions extends BaseController
 
             $transactionData = [
                 'customer_id' => $customerId,
+                'code' => $this->model->generateTransactionCode(),
                 'status' => $this->request->getVar('status') ?? 'pending',
                 'payment_status' => $this->request->getVar('payment_status') ?? $paymentStatus,
                 'order_date' => $orderDate,
@@ -336,8 +356,8 @@ class Transactions extends BaseController
             'link' => $this->link,
             'transaction' => $transaction,
             'details' => $details,
-            'customers' => $this->customerModel->where('is_active', 1)->findAll(),
-            'products' => $this->getProductsWithEffectiveStock($id),
+            'customers' => $this->customerModel->where('status', 'Active')->findAll(),
+            'products' => $this->productModel->getProductsWithEffectiveStock($id),
             'paymentMethods' => $this->paymentMethodModel->findAll(),
             'payments' => $this->paymentModel->where('transaction_id', $id)->findAll(),
             'refunds' => $this->paymentRefundModel->where('transaction_id', $id)->findAll(),
@@ -408,7 +428,7 @@ class Transactions extends BaseController
 
             // Find old details to offset the stock check
             $oldDetails = $this->detailModel->where('transaction_id', $id)->findAll();
-            $productsWithStock = $this->getProductsWithEffectiveStock($id);
+            $productsWithStock = $this->productModel->getProductsWithEffectiveStock($id);
             $stockMap = [];
             foreach ($productsWithStock as $p) {
                 $stockMap[$p->id] = $p->qty;
@@ -658,48 +678,5 @@ class Transactions extends BaseController
             $this->db->transRollback();
             return redirect()->back()->with('error', $th->getMessage())->withInput();
         }
-    }
-
-    protected function getProductsWithEffectiveStock($excludeTransactionId = null)
-    {
-        $products = $this->productModel->findAll();
-        $db = \Config\Database::connect();
-        $builder = $db->table('transaction_details td');
-        $builder->select('td.product_id, SUM(td.qty) as hold_qty');
-        $builder->join('transactions t', 't.id = td.transaction_id');
-        $builder->whereNotIn('t.status', ['delivered', 'cancelled']);
-
-        if ($excludeTransactionId) {
-            $builder->where('t.id !=', $excludeTransactionId);
-        }
-
-        $builder->where('t.deleted_at IS NULL');
-        $builder->groupBy('td.product_id');
-        $holds = $builder->get()->getResult();
-
-        $holdMap = [];
-        foreach ($holds as $h) {
-            $holdMap[$h->product_id] = $h->hold_qty;
-        }
-
-        $restockMap = [];
-        if ($excludeTransactionId) {
-            $trans = $this->model->find($excludeTransactionId);
-            if ($trans && $trans->status === 'delivered') {
-                $oldDetails = $this->detailModel->where('transaction_id', $excludeTransactionId)->findAll();
-                foreach ($oldDetails as $od) {
-                    if (!isset($restockMap[$od->product_id])) $restockMap[$od->product_id] = 0;
-                    $restockMap[$od->product_id] += $od->qty;
-                }
-            }
-        }
-
-        foreach ($products as $p) {
-            $hold = isset($holdMap[$p->id]) ? $holdMap[$p->id] : 0;
-            $restock = isset($restockMap[$p->id]) ? $restockMap[$p->id] : 0;
-            $p->qty = max(0, ($p->qty + $restock) - $hold);
-        }
-
-        return $products;
     }
 }

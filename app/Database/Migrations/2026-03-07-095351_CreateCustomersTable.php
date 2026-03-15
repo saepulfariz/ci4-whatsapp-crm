@@ -16,6 +16,15 @@ class CreateCustomersTable extends Migration
                 'unsigned'       => true,
                 'auto_increment' => true,
             ],
+            'group_id' => [
+                'type'           => 'INT',
+                'constraint'     => 11,
+                'unsigned'       => true,
+            ],
+            'code' => [
+                'type'       => 'VARCHAR',
+                'constraint' => '255',
+            ],
             'name' => [
                 'type'       => 'VARCHAR',
                 'constraint' => '255',
@@ -24,12 +33,18 @@ class CreateCustomersTable extends Migration
                 'type'       => 'VARCHAR',
                 'constraint' => '100',
             ],
+            'category' => [
+                'type'       => 'VARCHAR',
+                'constraint' => '100',
+            ],
             'address' => [
                 'type'       => 'TEXT',
+                'null' => true
             ],
-            'is_active' => [
-                'type'       => 'INT',
-                'default' => 1
+            'status' => [
+                'type'       => 'VARCHAR',
+                'constraint' => '255',
+                'default' => 'Active'
             ],
             'cid' => [
                 'type'           => 'INT',
@@ -64,6 +79,7 @@ class CreateCustomersTable extends Migration
 
         ]);
         $this->forge->addKey('id', true);
+        $this->forge->addForeignKey('group_id', 'groups', 'id');
         $this->forge->createTable('customers');
     }
 

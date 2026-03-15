@@ -21,6 +21,11 @@ class CreateTransactionsTable extends Migration
                 'constraint'     => 11,
                 'unsigned'       => true,
             ],
+            'code' => [
+                'type'       => 'VARCHAR',
+                'constraint' => '255',
+                'unique' => true
+            ],
             'status' => [
                 'type'       => 'VARCHAR',
                 'constraint' => '255',

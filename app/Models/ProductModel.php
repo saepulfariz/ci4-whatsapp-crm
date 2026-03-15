@@ -18,12 +18,15 @@ class ProductModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'category_id',
+        'code',
         'name',
         'price',
         'qty',
+        'min_qty',
+        'cogs',
         'image',
         'description',
-        'is_active',
+        'status',
     ];
     protected $cacheKey = 'products';
 
@@ -60,13 +63,62 @@ class ProductModel extends Model
     // public $logName = false;
     public $logId = true;
 
-    public function getAllProductQty()
+    public function getAllProductQty($category_id = null)
     {
-        return $this->select('products.*, categories.name as category_name')
-            ->select('(SELECT COALESCE(SUM(td.qty), 0) FROM transaction_details td JOIN transactions t ON t.id = td.transaction_id WHERE td.product_id = products.id AND t.status NOT IN ("delivered", "cancelled") AND t.deleted_at IS NULL) as hold_qty')
-            ->select('(products.qty - (SELECT COALESCE(SUM(td.qty), 0) FROM transaction_details td JOIN transactions t ON t.id = td.transaction_id WHERE td.product_id = products.id AND t.status NOT IN ("delivered", "cancelled") AND t.deleted_at IS NULL)) as stock')
+        $data = $this->select('products.*, categories.name as category_name')
+            ->select('(SELECT COALESCE(SUM(td.qty), 0) FROM transaction_details td JOIN transactions t ON t.id = td.transaction_id WHERE td.product_id = products.id AND t.status NOT IN ("completed", "cancelled") AND t.deleted_at IS NULL) as hold_qty')
+            ->select('(products.qty - (SELECT COALESCE(SUM(td.qty), 0) FROM transaction_details td JOIN transactions t ON t.id = td.transaction_id WHERE td.product_id = products.id AND t.status NOT IN ("completed", "cancelled") AND t.deleted_at IS NULL)) as stock')
             ->join('categories', 'categories.id = products.category_id')
-            ->orderBy('products.id', 'desc')
-            ->findAll();
+            ->orderBy('products.id', 'desc');
+
+        if ($category_id) {
+            return $data->where('category_id', $category_id)->findAll();
+        } else {
+
+            return $data->findAll();
+        }
+    }
+
+    public function getProductsWithEffectiveStock($excludeTransactionId = null)
+    {
+        $products = $this->findAll();
+        $db = \Config\Database::connect();
+        $builder = $db->table('transaction_details td');
+        $builder->select('td.product_id, SUM(td.qty) as hold_qty');
+        $builder->join('transactions t', 't.id = td.transaction_id');
+        $builder->whereNotIn('t.status', ['completed', 'cancelled']);
+
+        if ($excludeTransactionId) {
+            $builder->where('t.id !=', $excludeTransactionId);
+        }
+
+        $builder->where('t.deleted_at IS NULL');
+        $builder->groupBy('td.product_id');
+        $holds = $builder->get()->getResult();
+
+        $holdMap = [];
+        foreach ($holds as $h) {
+            $holdMap[$h->product_id] = $h->hold_qty;
+        }
+
+        $restockMap = [];
+        if ($excludeTransactionId) {
+            $trans = $this->model->find($excludeTransactionId);
+            if ($trans && $trans->status === 'completed') {
+                $oldDetails = $this->detailModel->where('transaction_id', $excludeTransactionId)->findAll();
+                foreach ($oldDetails as $od) {
+                    if (!isset($restockMap[$od->product_id])) $restockMap[$od->product_id] = 0;
+                    $restockMap[$od->product_id] += $od->qty;
+                }
+            }
+        }
+
+        foreach ($products as $p) {
+            $hold = isset($holdMap[$p->id]) ? $holdMap[$p->id] : 0;
+            $restock = isset($restockMap[$p->id]) ? $restockMap[$p->id] : 0;
+            $p->qty = max(0, ($p->qty + $restock) - $hold);
+        }
+
+        return $products;
     }
 }

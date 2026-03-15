@@ -44,6 +44,7 @@ $routes->resource('products', ['controller' => '\App\Controllers\Products', 'fil
 
 $routes->get('customers/(:any)/activate', '\App\Controllers\Customers::activate/$1');
 $routes->get('customers/(:any)/deactivate', '\App\Controllers\Customers::deactivate/$1');
+$routes->resource('customers/groups', ['controller' => '\App\Controllers\Groups', 'filter' => 'session']);
 $routes->resource('customers', ['controller' => '\App\Controllers\Customers', 'filter' => 'session']);
 
 $routes->resource('transactions', ['controller' => '\App\Controllers\Transactions', 'filter' => 'session']);
@@ -57,6 +58,11 @@ $routes->resource('share-broadcasts', ['controller' => '\App\Controllers\ShareBr
 
 $routes->resource('auto-replies', ['controller' => '\App\Controllers\AutoReplies', 'filter' => 'session']);
 $routes->get('chat-bots', '\App\Controllers\ChatBots::index', ['filter' => 'session']);
+
+$routes->resource('stocks', ['controller' => '\App\Controllers\Stocks', 'filter' => 'session']);
+
+$routes->post('sales', '\App\Controllers\Sales::create', ['filter' => 'session']);
+$routes->get('sales', '\App\Controllers\Sales::new', ['filter' => 'session']);
 
 
 service('auth')->routes($routes);

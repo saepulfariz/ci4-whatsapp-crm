@@ -14,6 +14,19 @@
 
 <script src="<?= asset_url(); ?>assets/plugins/select2/js/select2.min.js"></script>
 
+<script src="<?= asset_url(); ?>assets/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/jszip/jszip.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/pdfmake/pdfmake.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/pdfmake/vfs_fonts.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
 <script>
   $('form').on('submit', function(e) {
     // Ubah button submit jadi loading
@@ -141,84 +154,84 @@
     });
   }
 
-  setTimeout(function() {
-    rangetanggal();
-  }, 100);
+  // setTimeout(function() {
+  //   rangetanggal();
+  // }, 100);
 
-  function rangetanggal() {
+  // function rangetanggal() {
 
-    $('#f1').daterangepicker({
-      "showDropdowns": true,
-      // minDate: 0,
-      // maxDate: 365, // max 1 tahun
+  //   $('#f1').daterangepicker({
+  //     "showDropdowns": true,
+  //     // minDate: 0,
+  //     // maxDate: 365, // max 1 tahun
 
-      // bener bawah
-      // minDate: new Date().setDate(new Date() - 3),
-      // maxDate: new Date(),
-      isInvalidDate: function(date) {
-        const startDate = $('#f1').data('daterangepicker').startDate;
+  //     // bener bawah
+  //     // minDate: new Date().setDate(new Date() - 3),
+  //     // maxDate: new Date(),
+  //     isInvalidDate: function(date) {
+  //       const startDate = $('#f1').data('daterangepicker').startDate;
 
-        // Jika startDate belum dipilih, semua tanggal valid
-        if (!startDate) return false;
+  //       // Jika startDate belum dipilih, semua tanggal valid
+  //       if (!startDate) return false;
 
-        // Hitung selisih hari
-        const diffDays = date.diff(startDate, 'days') + 1;
+  //       // Hitung selisih hari
+  //       const diffDays = date.diff(startDate, 'days') + 1;
 
-        // Nonaktifkan tanggal jika rentang lebih dari 3 hari
-        // return diffDays > 3;
-      },
-      ranges: {
-        'Today': [moment(), moment()],
-        'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-        // '3 day ago': [moment().subtract(3, 'days'), moment()],
-        '1 week ago': [moment().subtract(7, 'days'), moment()],
-        '30 Hari yang lalu': [moment().subtract(29, 'days'), moment()],
-        //    'This Month': [moment().startOf('month'), moment().endOf('month')],
-        //    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-      },
-      "locale": {
-        "format": "DD/MM/YYYY",
-        "separator": " - ",
-        "applyLabel": "Apply",
-        "cancelLabel": "Cancel",
-        "fromLabel": "From",
-        "toLabel": "To",
-        "customRangeLabel": "Customize",
-        "weekLabel": "W",
-        "daysOfWeek": [
-          "Min",
-          "Sen",
-          "Sel",
-          "Rab",
-          "Kam",
-          "Jum",
-          "Sab",
+  //       // Nonaktifkan tanggal jika rentang lebih dari 3 hari
+  //       // return diffDays > 3;
+  //     },
+  //     ranges: {
+  //       'Today': [moment(), moment()],
+  //       'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+  //       // '3 day ago': [moment().subtract(3, 'days'), moment()],
+  //       '1 week ago': [moment().subtract(7, 'days'), moment()],
+  //       '30 Hari yang lalu': [moment().subtract(29, 'days'), moment()],
+  //       //    'This Month': [moment().startOf('month'), moment().endOf('month')],
+  //       //    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+  //     },
+  //     "locale": {
+  //       "format": "DD/MM/YYYY",
+  //       "separator": " - ",
+  //       "applyLabel": "Apply",
+  //       "cancelLabel": "Cancel",
+  //       "fromLabel": "From",
+  //       "toLabel": "To",
+  //       "customRangeLabel": "Customize",
+  //       "weekLabel": "W",
+  //       "daysOfWeek": [
+  //         "Min",
+  //         "Sen",
+  //         "Sel",
+  //         "Rab",
+  //         "Kam",
+  //         "Jum",
+  //         "Sab",
 
-        ],
-        "monthNames": [
-          "Januari",
-          "Februari",
-          "Maret",
-          "April",
-          "Mei",
-          "Juni",
-          "Juli",
-          "Agustus",
-          "September",
-          "Oktober",
-          "November",
-          "Desember"
-        ],
-        "firstDay": 1
-      },
-      "startDate": moment(),
-      "endDate": moment(),
-      "opens": "left"
-    }, function(start, end, label) {
-      console.log('New date range selected: ' + start.format('DD-MM-YYYY') + ' to ' + end.format('DD-MM-YYYY') + ' (predefined range: ' + label + ')');
+  //       ],
+  //       "monthNames": [
+  //         "Januari",
+  //         "Februari",
+  //         "Maret",
+  //         "April",
+  //         "Mei",
+  //         "Juni",
+  //         "Juli",
+  //         "Agustus",
+  //         "September",
+  //         "Oktober",
+  //         "November",
+  //         "Desember"
+  //       ],
+  //       "firstDay": 1
+  //     },
+  //     "startDate": moment(),
+  //     "endDate": moment(),
+  //     "opens": "left"
+  //   }, function(start, end, label) {
+  //     console.log('New date range selected: ' + start.format('DD-MM-YYYY') + ' to ' + end.format('DD-MM-YYYY') + ' (predefined range: ' + label + ')');
 
-    });
-  }
+  //   });
+  // }
 </script>
 
 <?= $this->renderSection('script'); ?>
