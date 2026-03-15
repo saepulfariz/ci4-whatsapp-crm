@@ -43,7 +43,7 @@ class SeedStocks extends Seeder
 
         $this->db->table('auth_permissions_groups')->insertBatch($data);
 
-        $parent_id = $this->db->table('auth_menus')->limit(1)->where('title', 'Master Data')->get()->getRowArray()['id'] ?? null;
+        $parent_id = null;
 
 
         if (ENVIRONMENT === 'development') {
@@ -52,7 +52,7 @@ class SeedStocks extends Seeder
                 [
                     'parent_id' => $parent_id,
                     'title' => 'Stocks',
-                    'icon' => 'fas fa-box-open',
+                    'icon' => 'fas fa-warehouse',
                     'route' => 'stocks',
                     'order' => 5,
                     'active' => 1,
@@ -64,7 +64,7 @@ class SeedStocks extends Seeder
                 [
                     'parent_id' => $parent_id,
                     'title' => 'Stocks',
-                    'icon' => 'fas fa-box-open',
+                    'icon' => 'fas fa-warehouse',
                     'route' => 'stocks',
                     'order' => 5,
                     'active' => 1,

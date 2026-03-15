@@ -72,7 +72,7 @@ class SeedBroadcasts extends Seeder
             $data = [
                 [
                     'parent_id' => NULL,
-                    'title' => 'Broadcasts',
+                    'title' => 'Template Broadcasts',
                     'icon' => 'fas fa-bullhorn',
                     'route' => 'broadcasts',
                     'order' => 5,
@@ -84,7 +84,7 @@ class SeedBroadcasts extends Seeder
             $data = [
                 [
                     'parent_id' => NULL,
-                    'title' => 'Broadcasts',
+                    'title' => 'Template Broadcasts',
                     'icon' => 'fas fa-bullhorn',
                     'route' => 'broadcasts',
                     'order' => 5,

@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'broadcasts' => 'Broadcasts',
+    'broadcasts' => 'Template Broadcasts',
     'title' => 'Title',
     'content' => 'Content',
     'variables' => 'Variables',
-    'create_success' => 'Broadcast created successfully',
-    'update_success' => 'Broadcast updated successfully',
-    'delete_success' => 'Broadcast deleted successfully',
+    'create_success' => 'Template Broadcast created successfully',
+    'update_success' => 'Template Broadcast updated successfully',
+    'delete_success' => 'Template Broadcast deleted successfully',
     'create_error' => 'Failed to create broadcast',
     'update_error' => 'Failed to update broadcast',
     'delete_error' => 'Failed to delete broadcast',
@@ -21,12 +21,12 @@ return [
     'var_update_error' => 'Failed to update variable',
     'var_delete_error' => 'Failed to delete variable',
 
-    'back_to_broadcasts' => 'Back to Broadcasts',
+    'back_to_broadcasts' => 'Back to Template Broadcasts',
 
-    'share_broadcasts' => 'Share Broadcasts',
+    'share_broadcasts' => 'Share Template Broadcasts',
     'recipient' => 'Recipient',
     'custom_phone' => 'Custom Phone / Group ID',
-    'compose' => 'Compose Broadcast',
+    'compose' => 'Compose Template Broadcast',
     'preview' => 'Preview',
     'send' => 'Send',
     'reshare' => 'Reshare',

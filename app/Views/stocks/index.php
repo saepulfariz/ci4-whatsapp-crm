@@ -33,8 +33,8 @@ $can_create = auth()->user()->can('stocks.create');
             <tr>
                 <th>No</th>
                 <th><?= temp_lang('stocks.date') ?></th>
-                <th><?= temp_lang('stocks.code') ?></th>
-                <th><?= temp_lang('stocks.name') ?></th>
+                <th><?= temp_lang('stocks.product_code') ?></th>
+                <th><?= temp_lang('stocks.product_name') ?></th>
                 <th><?= temp_lang('stocks.type') ?></th>
                 <th><?= temp_lang('stocks.qty') ?></th>
                 <th><?= temp_lang('stocks.prev_stock') ?></th>

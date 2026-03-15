@@ -76,7 +76,7 @@ class SeedReports extends Seeder
                 [
                     'parent_id' => $parent_id,
                     'title' => 'Reports',
-                    'icon' => 'fas fa-box-open',
+                    'icon' => 'fas fa-file-alt',
                     'route' => 'reports',
                     'order' => 5,
                     'active' => 1,
@@ -88,7 +88,7 @@ class SeedReports extends Seeder
                 [
                     'parent_id' => $parent_id,
                     'title' => 'Reports',
-                    'icon' => 'fas fa-box-open',
+                    'icon' => 'fas fa-file-alt',
                     'route' => 'reports',
                     'order' => 5,
                     'active' => 1,

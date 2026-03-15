@@ -13,6 +13,7 @@ use App\Models\PaymentModel;
 use App\Models\PaymentRefundModel;
 use App\Models\GroupModel;
 use App\Models\CategoryModel;
+use App\Models\ProductStockModel;
 
 class Sales extends BaseController
 {
@@ -23,6 +24,7 @@ class Sales extends BaseController
     private $paymentMethodModel;
     private $paymentModel;
     private $paymentRefundModel;
+    private $productStockModel;
 
     private $link = 'sales';
     private $view = 'sales';
@@ -43,6 +45,8 @@ class Sales extends BaseController
         $this->paymentRefundModel = new PaymentRefundModel();
         $this->model_group = new GroupModel();
         $this->model_category = new CategoryModel();
+
+        $this->productStockModel = new ProductStockModel();
     }
 
     public function new()
@@ -267,6 +271,18 @@ class Sales extends BaseController
                         if ($p) {
                             $this->productModel->update($p->id, ['qty' => $p->qty - $nd['qty']]);
                         }
+
+                        // insert to product_stocks
+                        $productStockData = [
+                            'product_id' => $nd['product_id'],
+                            'qty' => $nd['qty'],
+                            'type' => 'Stock Out',
+                            'prev_stock' => $p->qty,
+                            'current_stock' => $p->qty - $nd['qty'],
+                            'note' => $this->request->getVar('note', FILTER_SANITIZE_STRING),
+                            'date' => date('Y-m-d H:i:s'),
+                        ];
+                        $this->productStockModel->insert($productStockData);
                     }
                 }
             }

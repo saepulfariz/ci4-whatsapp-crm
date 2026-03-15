@@ -127,5 +127,28 @@ class SeedProducts extends Seeder
         ];
 
         $this->db->table('products')->insertBatch($data);
+
+        // insert to product_stocks
+        $data = [
+            [
+                'product_id' => 1,
+                'type' => 'Stock In',
+                'qty' => 50,
+                'prev_stock' => 50,
+                'current_stock' => 50,
+                'note' => 'Initial Stock',
+                'cid' => 1,
+            ],
+            [
+                'product_id' => 2,
+                'type' => 'Stock In',
+                'qty' => 100,
+                'prev_stock' => 100,
+                'current_stock' => 100,
+                'note' => 'Initial Stock',
+                'cid' => 1,
+            ],
+        ];
+        $this->db->table('product_stocks')->insertBatch($data);
     }
 }

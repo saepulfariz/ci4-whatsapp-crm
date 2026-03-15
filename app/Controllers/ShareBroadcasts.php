@@ -63,7 +63,7 @@ class ShareBroadcasts extends BaseController
             'title' => $this->title,
             'link' => $this->link,
             'templates' => $this->broadcastModel->findAll(),
-            'customers' => $this->customerModel->where('is_active', 1)->findAll(),
+            'customers' => $this->customerModel->where('status', 'Active')->findAll(),
         ];
 
         return view($this->view . '/new', $data);

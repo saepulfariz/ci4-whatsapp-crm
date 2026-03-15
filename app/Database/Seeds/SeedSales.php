@@ -53,7 +53,7 @@ class SeedSales extends Seeder
                 [
                     'parent_id' => $parent_id,
                     'title' => 'Sales',
-                    'icon' => 'fas fa-box-open',
+                    'icon' => 'fas fa-shopping-cart',
                     'route' => 'sales',
                     'order' => 5,
                     'active' => 1,
@@ -65,7 +65,7 @@ class SeedSales extends Seeder
                 [
                     'parent_id' => $parent_id,
                     'title' => 'Sales',
-                    'icon' => 'fas fa-box-open',
+                    'icon' => 'fas fa-shopping-cart',
                     'route' => 'sales',
                     'order' => 5,
                     'active' => 1,

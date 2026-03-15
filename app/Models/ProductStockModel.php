@@ -66,6 +66,11 @@ class ProductStockModel extends Model
             'name' => 'Stock In',
             'operation' => '+',
         ],
+        // [
+        //     'id' => 'Stock Out',
+        //     'name' => 'Stock Out',
+        //     'operation' => '-',
+        // ],
         [
             'id' => 'Adjustment Increase',
             'name' => 'Adjustment Increase',
