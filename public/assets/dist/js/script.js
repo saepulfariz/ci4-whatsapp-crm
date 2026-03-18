@@ -38,20 +38,20 @@ const groupsData = [
 ];
 
 // Customers Data
-const customersData = [
-    { id: 1, code: 'CUST-001', name: 'Andi', phone: '0812345678901', tag: 'Retail', group: 'Regular Customers', status: 'Active', notes: 'Regular customer since 2024' },
-    { id: 2, code: 'CUST-002', name: 'Budi', phone: '0821345678901', tag: 'Reseller', group: 'Reseller Group', status: 'Active', notes: 'Bulk buyer' },
-    { id: 3, code: 'CUST-003', name: 'Sinta', phone: '0857345678901', tag: 'VIP', group: 'Premium Customers', status: 'Active', notes: 'High-value customer' },
-    { id: 4, code: 'CUST-004', name: 'Doni', phone: '0813345678901', tag: 'Cafe Owner', group: 'Drink Buyers', status: 'Active', notes: '' },
-    { id: 5, code: 'CUST-005', name: 'Eka', phone: '0812987654321', tag: 'Retail', group: 'Regular Customers', status: 'Active', notes: '' },
-];
+// const customersData = [
+//     { id: 1, code: 'CUST-001', name: 'Andi', phone: '0812345678901', tag: 'Retail', group: 'Regular Customers', status: 'Active', notes: 'Regular customer since 2024' },
+//     { id: 2, code: 'CUST-002', name: 'Budi', phone: '0821345678901', tag: 'Reseller', group: 'Reseller Group', status: 'Active', notes: 'Bulk buyer' },
+//     { id: 3, code: 'CUST-003', name: 'Sinta', phone: '0857345678901', tag: 'VIP', group: 'Premium Customers', status: 'Active', notes: 'High-value customer' },
+//     { id: 4, code: 'CUST-004', name: 'Doni', phone: '0813345678901', tag: 'Cafe Owner', group: 'Drink Buyers', status: 'Active', notes: '' },
+//     { id: 5, code: 'CUST-005', name: 'Eka', phone: '0812987654321', tag: 'Retail', group: 'Regular Customers', status: 'Active', notes: '' },
+// ];
 
 // Broadcast History Data
-const broadcastHistoryData = [
-    { id: 1, date: '2026-03-10 10:30', title: 'New Product Launch - Sugar Donut', recipientType: 'All Contacts', recipients: 5, attachment: 'Image', status: 'Sent', createdBy: 'Admin' },
-    { id: 2, date: '2026-03-09 14:15', title: 'Weekend Promo - 20% Discount', recipientType: 'By Group', recipients: 3, attachment: 'No', status: 'Sent', createdBy: 'Admin' },
-    { id: 3, date: '2026-03-08 09:00', title: 'Spring Collection Announcement', recipientType: 'Selected', recipients: 1, attachment: 'Image', status: 'Draft', createdBy: 'Admin' },
-];
+// const broadcastHistoryData = [
+//     { id: 1, date: '2026-03-10 10:30', title: 'New Product Launch - Sugar Donut', recipientType: 'All Contacts', recipients: 5, attachment: 'Image', status: 'Sent', createdBy: 'Admin' },
+//     { id: 2, date: '2026-03-09 14:15', title: 'Weekend Promo - 20% Discount', recipientType: 'By Group', recipients: 3, attachment: 'No', status: 'Sent', createdBy: 'Admin' },
+//     { id: 3, date: '2026-03-08 09:00', title: 'Spring Collection Announcement', recipientType: 'Selected', recipients: 1, attachment: 'Image', status: 'Draft', createdBy: 'Admin' },
+// ];
 
 let currentCart = [];
 let editingProductId = null;
@@ -162,11 +162,11 @@ function navigateToPage(pageName) {
 // ========================================
 
 function loadBroadcastPage() {
-    setupBroadcastTabs();
-    loadBroadcastContactList();
-    populateBroadcastGroupSelect();
-    updateAllContactsCount();
-    loadBroadcastHistory();
+    // setupBroadcastTabs();
+    // loadBroadcastContactList();
+    // populateBroadcastGroupSelect();
+    // updateAllContactsCount();
+    // loadBroadcastHistory();
 }
 
 function setupBroadcastTabs() {

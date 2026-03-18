@@ -153,7 +153,7 @@ class ShareBroadcasts extends BaseController
 
                     log_message('error', json_encode($phone));
 
-                    $result = send_message($phone, $finalContent);
+                    $result = send_whatsapp_message($phone, $finalContent);
                     log_message('error', json_encode($result));
                     // result {"code":"SUCCESS","message":"Message sent to
 
@@ -196,7 +196,7 @@ class ShareBroadcasts extends BaseController
                             $phoneTarget = $phoneTarget . getenv('GOWA_PHONE');
                         }
                     }
-                    $result = send_message($phoneTarget, $finalContent);
+                    $result = send_whatsapp_message($phoneTarget, $finalContent);
                     if (isset($result['code']) && $result['code'] === 'SUCCESS') {
                         $this->model->update($this->model->getInsertID(), [
                             'status' => 'sent'
@@ -249,7 +249,7 @@ class ShareBroadcasts extends BaseController
             }
         }
 
-        $result = send_message($log->to, $log->content);
+        $result = send_whatsapp_message($log->to, $log->content);
         log_message('debug', 'Result: ' . json_encode($result));
 
 

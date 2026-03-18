@@ -103,13 +103,13 @@ class ChatBots extends BaseController
                 foreach ($autoReply as $reply) {
                     if ($reply['is_exact_match'] == 1) {
                         if (strtolower($reply['keyword']) == strtolower($text)) {
-                            send_message($from, $reply['content']);
+                            send_whatsapp_message($from, $reply['content']);
                             $answer = $reply['content'];
                             break;
                         }
                     } else {
                         if (str_contains($text, $reply['keyword'])) {
-                            send_message($from, $reply['content']);
+                            send_whatsapp_message($from, $reply['content']);
                             $answer = $reply['content'];
                             break;
                         }

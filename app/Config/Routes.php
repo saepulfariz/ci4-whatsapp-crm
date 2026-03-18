@@ -67,4 +67,7 @@ $routes->get('sales', '\App\Controllers\Sales::new', ['filter' => 'session']);
 $routes->get('reports', '\App\Controllers\Reports::index', ['filter' => 'session']);
 
 
+$routes->post('whatsapp-broadcasts', '\App\Controllers\WhatsappBroadcasts::create', ['filter' => 'session']);
+$routes->get('whatsapp-broadcasts', '\App\Controllers\WhatsappBroadcasts::index', ['filter' => 'session']);
+
 service('auth')->routes($routes);
