@@ -15,8 +15,8 @@
     </div>
     <div class="st-card">
         <div class="st-card-header">Best-Selling Product</div>
-        <div class="st-card-value"><?= $best_selling_product->name; ?></div>
-        <div class="st-card-subtitle"><?= $best_selling_product->total_sold; ?> units sold today</div>
+        <div class="st-card-value"><?= $best_selling_product->name ?? '-'; ?></div>
+        <div class="st-card-subtitle"><?= $best_selling_product->total_sold ?? '-'; ?> units sold today</div>
     </div>
     <div class="st-card">
         <div class="st-card-header">Low Stock Alert</div>
