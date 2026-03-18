@@ -70,4 +70,7 @@ $routes->get('reports', '\App\Controllers\Reports::index', ['filter' => 'session
 $routes->post('whatsapp-broadcasts', '\App\Controllers\WhatsappBroadcasts::create', ['filter' => 'session']);
 $routes->get('whatsapp-broadcasts', '\App\Controllers\WhatsappBroadcasts::index', ['filter' => 'session']);
 
+$routes->get('api/sales-week', 'Dashboard::salesThisWeek', ['filter' => 'session']);
+$routes->get('api/product-category-distribution', 'Dashboard::productCategoryDistribution', ['filter' => 'session']);
+
 service('auth')->routes($routes);

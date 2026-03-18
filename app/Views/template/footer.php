@@ -13,6 +13,7 @@
 <script src="<?= asset_url(); ?>assets/plugins/select2/js/select2.min.js"></script>
 
 <script src="<?= asset_url(); ?>assets/plugins/select2/js/select2.min.js"></script>
+<script src="<?= asset_url(); ?>assets/plugins/chart.js/Chart.min.js"></script>
 
 <script src="<?= asset_url(); ?>assets/plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="<?= asset_url(); ?>assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>

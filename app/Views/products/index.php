@@ -14,7 +14,7 @@ $can_delete = auth()->user()->can('products.delete');
     <button class="st-btn st-btn-primary" onclick="openProductModal()">+ Add Product</button>
 </div>
 
-<form id="productForm" action="<?= base_url($link) ?>" method="get">
+<form id="productFormFilter" action="<?= base_url($link) ?>" method="get">
     <div class="st-filters-bar">
         <select class="st-input-field" id="categoryFilter" name="category_id">
             <option value="">All Categories</option>
@@ -402,7 +402,7 @@ $can_delete = auth()->user()->can('products.delete');
     }
 
     document.getElementById('categoryFilter').addEventListener('change', function() {
-        document.getElementById('productForm').submit();
+        document.getElementById('productFormFilter').submit();
     });
 </script>
 <?= $this->endSection('script') ?>
